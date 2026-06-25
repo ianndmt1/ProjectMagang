@@ -1,0 +1,240 @@
+@import "tailwindcss";
+
+/* ============================================================
+   DESIGN SYSTEM — Clean & Professional Premium Thrift
+   Background: #F8F6F1 (warm cream), Accent: #1A1A1A (deep black)
+   Tan: #C8A882, CTA/Highlight: #E8472A (brick orange)
+   ============================================================ */
+:root {
+  --color-bg: #F8F6F1;
+  --color-panel: #EDE8DD;
+  --color-panel-alt: #E5E0D5;
+  --color-white: #FFFFFF;
+  --color-paper: #1A1A1A;
+  --color-rust: #E8472A;
+  --color-tan: #C8A882;
+  --color-olive: #5C6B47;
+  --color-mustard: #C8A882;
+  --color-text-main: #1A1A1A;
+  --color-text-muted: #7A7570;
+  --color-hairline: rgba(26, 26, 26, 0.1);
+  --color-border: #E8E6E1;
+  --color-dark-spotlight: #1A1A1A;
+}
+
+/* ============================================================
+   DARK MODE OVERRIDES (via next-themes attribute="class")
+   ============================================================ */
+.dark {
+  --color-bg: #1A1A1A;
+  --color-panel: #242424;
+  --color-panel-alt: #2E2E2E;
+  --color-white: #2A2A2A;
+  --color-paper: #F8F6F1;
+  --color-rust: #E8472A;
+  --color-tan: #C8A882;
+  --color-olive: #6B7D55;
+  --color-mustard: #C8A882;
+  --color-text-main: #F0EDE8;
+  --color-text-muted: #9A9590;
+  --color-hairline: rgba(240, 237, 232, 0.12);
+  --color-border: rgba(240, 237, 232, 0.15);
+  --color-dark-spotlight: #111111;
+}
+
+/* ============================================================
+   TAILWIND v4 THEME TOKENS
+   ============================================================ */
+@theme {
+  --color-bg: var(--color-bg);
+  --color-panel: var(--color-panel);
+  --color-panel-alt: var(--color-panel-alt);
+  --color-white: var(--color-white);
+  --color-paper: var(--color-paper);
+  --color-rust: var(--color-rust);
+  --color-tan: var(--color-tan);
+  --color-olive: var(--color-olive);
+  --color-mustard: var(--color-mustard);
+  --color-text-main: var(--color-text-main);
+  --color-text-muted: var(--color-text-muted);
+  --color-hairline: var(--color-hairline);
+  --color-border: var(--color-border);
+  --color-dark-spotlight: var(--color-dark-spotlight);
+
+  --font-display: var(--font-oswald);
+  --font-serif: var(--font-playfair);
+  --font-sans: var(--font-work-sans);
+  --font-mono: var(--font-space-mono);
+}
+
+/* ============================================================
+   CUSTOM SCROLLBAR
+   ============================================================ */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-tan);
+}
+
+/* ============================================================
+   BASE RESETS & TYPOGRAPHY
+   ============================================================ */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text-main);
+  font-family: var(--font-work-sans), system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+/* ============================================================
+   UTILITY BORDER CLASSES
+   ============================================================ */
+.hairline-border {
+  border: 1px solid var(--color-border);
+}
+
+.hairline-border-b {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.hairline-border-t {
+  border-top: 1px solid var(--color-border);
+}
+
+.hairline-border-r {
+  border-right: 1px solid var(--color-border);
+}
+
+.hairline-border-l {
+  border-left: 1px solid var(--color-border);
+}
+
+.hairline-divide > * + * {
+  border-color: var(--color-border);
+}
+
+/* ============================================================
+   MARQUEE ANIMATION
+   ============================================================ */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 24s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+    overflow-x: auto;
+  }
+}
+
+/* ============================================================
+   THEME TOGGLE ICON TRANSITION
+   ============================================================ */
+.theme-icon-enter {
+  animation: theme-icon-spin 0.3s ease-out;
+}
+
+@keyframes theme-icon-spin {
+  0% { transform: rotate(-90deg) scale(0.7); opacity: 0; }
+  100% { transform: rotate(0deg) scale(1); opacity: 1; }
+}
+
+/* ============================================================
+   HERO SLIDE TRANSITION
+   ============================================================ */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-slide-enter {
+  animation: fadeSlideIn 0.5s ease-out forwards;
+}
+
+/* ============================================================
+   PRODUCT CARD HOVER — Subtle premium lift
+   ============================================================ */
+.product-card-hover {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.product-card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 36px rgba(26, 26, 26, 0.08);
+}
+
+/* ============================================================
+   PILL BADGE
+   ============================================================ */
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 2px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.6;
+}
+
+/* ============================================================
+   SHARE DROPDOWN
+   ============================================================ */
+@keyframes shareDropIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.share-dropdown-enter {
+  animation: shareDropIn 0.18s ease-out forwards;
+}
+
+/* ============================================================
+   PREMIUM BUTTON BASE
+   ============================================================ */
+.btn-primary {
+  background-color: #1A1A1A;
+  color: #F8F6F1;
+  border: 1.5px solid #1A1A1A;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.btn-primary:hover {
+  background-color: #E8472A;
+  border-color: #E8472A;
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: #1A1A1A;
+  border: 1.5px solid #1A1A1A;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-outline:hover {
+  color: #E8472A;
+  border-color: #E8472A;
+}
