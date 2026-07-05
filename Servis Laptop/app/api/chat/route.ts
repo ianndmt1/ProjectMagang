@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     if (functionCalls && functionCalls.length > 0) {
       const call = functionCalls[0];
       if (call.name === "check_order_status") {
-        const { invoice_code } = call.args;
+        const { invoice_code } = call.args as { invoice_code: string };
         const apiResponse = await executeCheckOrderStatus(invoice_code as string);
         
         // Return tool output to Gemini to get a natural language response
