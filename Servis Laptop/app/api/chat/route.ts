@@ -29,13 +29,13 @@ export async function POST(request: Request) {
 
     // Handle function calling if Gemini requests to use the tool
     const functionCalls = result.response.functionCalls();
-    
+
     if (functionCalls && functionCalls.length > 0) {
       const call = functionCalls[0];
       if (call.name === "check_order_status") {
         const { invoice_code } = call.args as { invoice_code: string };
         const apiResponse = await executeCheckOrderStatus(invoice_code as string);
-        
+
         // Return tool output to Gemini to get a natural language response
         result = await chat.sendMessage([{
           functionResponse: {
@@ -47,14 +47,14 @@ export async function POST(request: Request) {
     }
 
     const reply = result.response.text();
-    
+
     // Fallback/heuristic for WhatsApp button visibility
     const lowerReply = reply.toLowerCase();
     if (
-      lowerReply.includes("whatsapp") || 
+      lowerReply.includes("whatsapp") ||
       lowerReply.includes("wa ") ||
-      lowerReply.includes("homeservice") || 
-      lowerReply.includes("hubungi") || 
+      lowerReply.includes("homeservice") ||
+      lowerReply.includes("hubungi") ||
       lowerReply.includes("maaf")
     ) {
       showWhatsappButton = true;
