@@ -46,8 +46,6 @@
 |---|
 | ![Owner](docs/owner.png) |
 
-> 📁 Simpan screenshot kamu di folder `docs/` dengan nama `login.png`, `admin.png`, `owner.png`
-
 ---
 
 ## 🛠️ Tech Stack
