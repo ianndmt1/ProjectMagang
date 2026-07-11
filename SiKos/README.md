@@ -62,15 +62,15 @@
 ## 🚀 Cara Menjalankan Lokal
 
 ### Prasyarat
-- Node.js versi 18 atau lebih baru
+- Node.js versi 14 atau lebih baru
 - Akun [Supabase](https://supabase.com) (gratis)
 - Akun [Vercel](https://vercel.com) (gratis)
 
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/username/sikoskos.git
-cd sikoskos
+git clone https://github.com/ianndmt1/ProjectMagang/tree/main/SiKos
+cd Sikos
 ```
 
 ### 2. Install Dependencies
@@ -104,7 +104,7 @@ Buka [http://localhost:3000](http://localhost:3000) di browser.
 
 ### 1. Buat Project Supabase
 1. Daftar di [supabase.com](https://supabase.com)
-2. Klik **New Project** → isi nama: `sikoskos`
+2. Klik **New Project** → isi nama: `Sikos`
 3. Pilih region: **Southeast Asia (Singapore)**
 4. Tunggu project siap (~2 menit)
 
@@ -201,12 +201,6 @@ SiKos/
 - [ ] Notifikasi WhatsApp
 - [ ] Multi cabang
 - [ ] Perpanjangan sewa otomatis
-
----
-
-## 📄 Lisensi
-
-Project ini menggunakan lisensi [MIT](LICENSE).
 
 ---
 
