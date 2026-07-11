@@ -32,6 +32,7 @@
 - 📈 **Laporan Keuangan** — Rekap pemasukan dan pengeluaran per periode
 - 🌐 **Tampilan Bahasa Indonesia** — Seluruh antarmuka dalam Bahasa Indonesia
 - 💰 **Format Rupiah** — Mata uang otomatis dalam format Rp
+- 📱 **Ramah Pengguna** — Akses mudah dari Desktop maupun Mobile  
 
 ---
 
