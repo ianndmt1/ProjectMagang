@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <base target="_top">
+  <title>Sistem Kasir Pintar</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <?!= include('Style'); ?>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+  <!-- TOAST NOTIFIKASI (pengganti alert()) -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- MODAL KONFIRMASI (pengganti confirm()) -->
+  <div class="modal-overlay modal-konfirmasi-overlay" id="modal-konfirmasi">
+    <div class="modal-content konfirmasi-box">
+      <div class="konfirmasi-icon" id="konfirmasi-icon">❓</div>
+      <div class="konfirmasi-judul" id="konfirmasi-judul">Konfirmasi</div>
+      <div class="konfirmasi-pesan" id="konfirmasi-pesan">Apakah Anda yakin?</div>
+      <div class="konfirmasi-aksi">
+        <button class="btn-outline" onclick="tutupKonfirmasi()">Batal</button>
+        <button class="btn-danger-solid" id="btn-konfirmasi-ya">Ya, Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDIT TEKS (pengganti prompt()) -->
+  <div class="modal-overlay modal-konfirmasi-overlay" id="modal-edit-teks">
+    <div class="modal-content konfirmasi-box" style="text-align:left;">
+      <div class="modal-header" style="border-bottom:none; margin-bottom:10px; padding-bottom:0;">
+        <span id="edit-teks-judul">Ubah Nama</span>
+        <button class="btn-tutup-modal" onclick="tutupEditTeks()">✖</button>
+      </div>
+      <label class="form-label" id="edit-teks-label" style="margin-top:0;">Nama baru:</label>
+      <input type="text" class="input-biasa" id="edit-teks-input" placeholder="Masukkan nama..."
+        onkeydown="if(event.key==='Enter') simpanEditTeks()">
+      <div class="konfirmasi-aksi mt-15">
+        <button class="btn-outline" onclick="tutupEditTeks()">Batal</button>
+        <button class="btn-primary" id="btn-edit-teks-simpan" onclick="simpanEditTeks()">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAYAR LOGIN -->
+  <div id="layar-login" class="login-overlay">
+    <div class="login-box">
+      <div class="login-logo">🛒 POS Pintar</div>
+      <p class="login-sub">Silakan login untuk melanjutkan</p>
+
+      <label class="form-label" for="login-user">Username</label>
+      <input type="text" class="input-biasa" id="login-user" placeholder="admin / kasir">
+
+      <label class="form-label" for="login-pass">Password</label>
+      <div class="wrapper-password">
+        <input type="password" class="input-biasa" id="login-pass" placeholder="********"
+          onkeydown="if(event.key==='Enter') prosesLogin()">
+        <button type="button" class="btn-toggle-password" onclick="toggleLihatPassword()" id="btn-toggle-password"
+          tabindex="-1">👁️</button>
+      </div>
+
+      <div id="login-error" class="login-error"></div>
+
+      <button class="btn-primary w-full mt-15" id="btn-login" onclick="prosesLogin()">Masuk</button>
+    </div>
+  </div>
+
+  <!-- SELURUH APLIKASI -->
+  <div id="app-container" style="display:none;">
+
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+    <div class="navbar" id="sidebar">
+      <button class="close-btn" onclick="toggleSidebar()">×</button>
+      <div class="nav-brand">POS Pintar</div>
+      <button id="btn-tab-dashboard" class="aktif" onclick="bukaTab('dashboard'); toggleSidebar()">📊 Dashboard</button>
+      <button id="btn-tab-kasir" onclick="bukaTab('kasir'); toggleSidebar()">🛒 Menu Kasir</button>
+      <button id="btn-tab-admin" onclick="bukaTab('admin'); toggleSidebar()">📦 Kelola Barang</button>
+      <button id="btn-tab-riwayat" onclick="bukaTab('riwayat'); toggleSidebar()">📜 Riwayat Transaksi</button>
+
+      <div class="nav-user-info">
+        <div id="info-user-nama">-</div>
+        <div id="info-user-role" class="badge-role">-</div>
+        <button class="btn-logout" onclick="prosesLogout()">🚪 Keluar</button>
+      </div>
+    </div>
+
+    <!-- HALAMAN DASHBOARD -->
+    <div id="tab-dashboard" class="halaman aktif">
+      <div class="dashboard-container">
+        <div class="dashboard-heading">
+          <h2>Dashboard Admin</h2>
+          <p>Ringkasan kerja hari ini</p>
+        </div>
+
+        <div id="dashboard-data">Memuat data dashboard...</div>
+
+        <div class="layout-row chart-row">
+          <div class="admin-tabel chart-card">
+            <h3 class="section-title">📈 Penjualan</h3>
+            <div class="chart-wrapper"><canvas id="grafikPenjualan"></canvas></div>
+          </div>
+          <div class="admin-tabel chart-card">
+            <h3 class="section-title">⚠️ Alert Stok</h3>
+            <div id="dashboard-alert-stok" class="alert-stok-box">Memuat...</div>
+          </div>
+        </div>
+
+        <div class="admin-tabel admin-tabel-full mt-20">
+          <div class="admin-tabel-header">
+            <h3 class="section-title">Transaksi Terbaru</h3>
+            <button class="btn-lihat-detail" onclick="bukaTab('riwayat')">👁️ Lihat Detail</button>
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Kode</th>
+                  <th>Metode</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th>Tanggal</th>
+                </tr>
+              </thead>
+              <tbody id="tabel-transaksi-terbaru">
+                <tr>
+                  <td colspan="5">Memuat data...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HALAMAN KASIR -->
+    <div id="tab-kasir" class="halaman">
+      <div class="kasir-full">
+        <div class="search-wrapper">
+          <input type="text" class="search-bar" id="input-cari" placeholder="🔍 Cari nama atau kode barang..."
+            onkeyup="cariBarang()">
+        </div>
+
+
+        <div class="kategori-bubble-wrapper">
+          <div id="list-kategori" class="kategori-bubble-list">Memuat...</div>
+        </div>
+
+        <div class="grid-produk" id="grid-produk">Memuat data dari server...</div>
+      </div>
+
+      <button class="btn-floating-cart" onclick="toggleModalKeranjang()" aria-label="Lihat Keranjang">
+        🛒
+        <span id="cart-count" class="cart-badge">0</span>
+      </button>
+    </div>
+
+    <!-- HALAMAN ADMIN -->
+    <div id="tab-admin" class="halaman">
+      <div class="admin-layout">
+        <div class="admin-tabel admin-tabel-full">
+          <div class="admin-tabel-header">
+            <h3 class="section-title">📦 Daftar Barang</h3>
+            <div class="admin-tabel-aksi-grup">
+              <button class="btn-aksi-sekunder" onclick="bukaModalKategori()">🏷️ Kategori</button>
+              <button class="btn-aksi-sekunder" onclick="bukaModalSatuan()">📏 Satuan</button>
+              <button class="btn-aksi-sekunder" onclick="bukaSortFilter()">⚙️ Urutkan/Filter</button>
+              <button class="btn-tambah-barang" onclick="bukaModalTambah()">➕ Tambah Barang</button>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Foto</th>
+                  <th>ID</th>
+                  <th>Nama</th>
+                  <th>Kategori</th>
+                  <th>H. Modal</th>
+                  <th>H. Jual</th>
+                  <th>Stok</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tabel-data">
+                <tr>
+                  <td colspan="8">Memuat data...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HALAMAN RIWAYAT -->
+    <div id="tab-riwayat" class="halaman">
+      <div class="admin-layout">
+        <div class="admin-tabel">
+          <div class="admin-tabel-header">
+            <h3 class="section-title">Buku Kas (Riwayat Transaksi)</h3>
+            <input type="text" class="input-cari-mini" id="input-cari-riwayat"
+              placeholder="🔍 Cari ID Trx / tanggal / metode..." onkeyup="cariRiwayat()">
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Waktu</th>
+                  <th>ID Trx</th>
+                  <th>Metode</th>
+                  <th>Status</th>
+                  <th>Total</th>
+                  <th>Laba</th>
+                  <th>Bayar</th>
+                  <th>Kembali</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tabel-riwayat">
+                <tr>
+                  <td colspan="9">Memuat data...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL KERANJANG -->
+    <div class="modal-overlay" id="modal-keranjang">
+      <div class="modal-content" style="width: 450px;">
+        <div class="modal-header">
+          <span>🛒 Keranjang Anda</span>
+          <button class="btn-tutup-modal" onclick="toggleModalKeranjang()">✖</button>
+        </div>
+
+        <div class="cart-list" id="keranjang">
+          <div style="text-align:center; color:var(--text-muted); margin-top:20px;">Keranjang kosong</div>
+        </div>
+
+        <div class="cart-summary">
+          <div class="summary-row">
+            <span>Total Tagihan:</span>
+            <span class="cart-total-teks" id="total-harga">Rp 0</span>
+          </div>
+        </div>
+
+        <label class="form-label mt-15">Metode Pembayaran:</label>
+        <select id="metode-bayar" class="input-select" onchange="tampilkanInfoPembayaran()">
+          <option value="Tunai">💵 Tunai</option>
+          <option value="Transfer">🏧 Transfer Bank</option>
+          <option value="QRIS">📱 QRIS</option>
+        </select>
+
+        <div id="info-qris" class="info-pembayaran" style="display:none;">
+          <img id="img-qris" src="" alt="QRIS" class="qris-img">
+          <div class="info-total-bayar">Total yang harus dibayar: <span id="qris-total">Rp 0</span></div>
+        </div>
+
+        <div id="info-transfer" class="info-pembayaran" style="display:none;">
+          <div class="transfer-bank">🏦 <span id="transfer-bank-nama"></span></div>
+          <div class="transfer-norek" id="transfer-norek"></div>
+          <div class="transfer-an" id="transfer-an"></div>
+          <div class="info-total-bayar">Total yang harus dibayar: <span id="transfer-total">Rp 0</span></div>
+        </div>
+
+        <label class="form-label mt-10">Uang Dibayar (Rp):</label>
+        <input type="text" class="input-bayar-besar" id="input-bayar"
+          oninput="formatRupiahRealtime(this); hitungKembalian()" placeholder="0">
+
+        <div class="quick-cash-container">
+          <button class="btn-quick-cash" onclick="setUangBayar('pas')">Uang Pas</button>
+          <button class="btn-quick-cash" onclick="setUangBayar(20000)">20K</button>
+          <button class="btn-quick-cash" onclick="setUangBayar(50000)">50K</button>
+          <button class="btn-quick-cash" onclick="setUangBayar(100000)">100K</button>
+        </div>
+
+        <div class="summary-row mt-15" style="border-top: none;">
+          <span style="color:var(--text-muted);">Kembalian:</span>
+          <span class="teks-kembali" id="teks-kembalian">Rp 0</span>
+        </div>
+
+        <button class="btn-bayar w-full mt-15" onclick="prosesCheckout()">Bayar & Selesaikan</button>
+      </div>
+    </div>
+
+    <!-- MODAL VERIFIKASI PEMBAYARAN (Transfer / QRIS - 2 langkah) -->
+    <div class="modal-overlay" id="modal-verifikasi-bayar">
+      <div class="modal-content verifikasi-bayar-content" style="width: 440px;">
+        <div class="modal-header">
+          <span id="verifikasi-judul">Verifikasi Pembayaran</span>
+          <button class="btn-tutup-modal" onclick="batalkanVerifikasiBayar()">✖</button>
+        </div>
+
+        <!-- Konten khusus Transfer -->
+        <div id="verifikasi-transfer" style="display:none;">
+          <div class="info-pembayaran">
+            <div class="transfer-bank">🏦 <span id="verif-bank-nama"></span></div>
+            <div class="transfer-norek" id="verif-bank-norek"></div>
+            <div class="transfer-an" id="verif-bank-an"></div>
+            <div class="info-total-bayar">Total yang harus ditransfer: <span id="verif-transfer-total">Rp 0</span></div>
+          </div>
+          <p class="verifikasi-catatan">Silakan transfer sesuai nominal di atas, lalu tekan <strong>Konfirmasi
+              Pembayaran</strong> setelah transfer berhasil dilakukan.</p>
+        </div>
+
+        <!-- Konten khusus QRIS -->
+        <div id="verifikasi-qris" style="display:none; text-align:center;">
+          <img id="verif-qris-img" src="" alt="QRIS" class="qris-img-besar">
+          <div class="info-total-bayar" style="margin-top:14px;">Total yang harus dibayar: <span
+              id="verif-qris-total">Rp 0</span></div>
+          <p class="verifikasi-catatan">Scan QRIS di atas menggunakan aplikasi e-wallet / mobile banking, lalu tekan
+            <strong>Konfirmasi Pembayaran</strong> setelah pembayaran berhasil.
+          </p>
+        </div>
+
+        <button class="btn-bayar w-full mt-15" id="btn-konfirmasi-bayar" onclick="konfirmasiPembayaran()">✅ Konfirmasi
+          Pembayaran</button>
+        <button class="btn-danger w-full mt-10" onclick="batalkanVerifikasiBayar()">Kembali</button>
+      </div>
+    </div>
+
+    <!-- MODAL TAMBAH / EDIT BARANG -->
+    <div class="modal-overlay" id="modal-produk">
+      <div class="modal-content" style="width: 460px;">
+        <div class="modal-header">
+          <span id="form-title">Tambah Barang Baru</span>
+          <button class="btn-tutup-modal" onclick="batalkanFormBarang()">✖</button>
+        </div>
+
+        <input type="hidden" id="mode-edit" value="">
+        <input type="hidden" id="in-id" value="">
+        <input type="hidden" id="in-foto-base64" value="">
+        <input type="hidden" id="in-foto-mime" value="">
+
+        <label class="form-label" for="in-foto-file">Foto Produk (Wajib):</label>
+        <div class="upload-foto-wrapper" onclick="document.getElementById('in-foto-file').click()">
+          <img id="preview-foto" class="preview-foto" style="display:none;">
+          <div id="placeholder-foto" class="placeholder-foto">📷<br>Tap untuk pilih foto</div>
+        </div>
+        <input type="file" id="in-foto-file" accept="image/*" style="display:none;" onchange="prosesFotoDipilih(this)">
+
+        <label class="form-label" for="in-nama">Nama Barang:</label>
+        <input type="text" class="input-biasa" id="in-nama" placeholder="Contoh: Kopi Bubuk">
+
+        <label class="form-label" for="in-kategori">Kategori:</label>
+        <div class="input-with-link">
+          <select class="input-biasa" id="in-kategori">
+            <option value="">Memuat kategori...</option>
+          </select>
+        </div>
+
+        <label class="form-label" for="in-hpp">Harga Modal (HPP):</label>
+        <div class="input-group">
+          <span>Rp</span>
+          <input type="text" class="input-biasa pl-35" id="in-hpp"
+            oninput="formatRupiahRealtime(this); saranHargaJual()" placeholder="0">
+        </div>
+
+        <label class="form-label" for="in-harga">Harga Jual: <span class="label-hint"
+            id="hint-harga-saran"></span></label>
+        <div class="input-group">
+          <span>Rp</span>
+          <input type="text" class="input-biasa pl-35" id="in-harga" oninput="formatRupiahRealtime(this)"
+            placeholder="0">
+        </div>
+
+        <div class="form-row-2">
+          <div>
+            <label class="form-label" for="in-satuan-besar">Satuan Besar:</label>
+            <select class="input-biasa" id="in-satuan-besar" onchange="saranKonversi()">
+              <option value="">-- Pilih --</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" for="in-satuan-ecer">Satuan Ecer:</label>
+            <select class="input-biasa" id="in-satuan-ecer" onchange="saranKonversi()">
+              <option value="">-- Pilih --</option>
+            </select>
+          </div>
+        </div>
+
+        <label class="form-label" for="in-konversi">Konversi (1 Satuan Besar = berapa Satuan Ecer):</label>
+        <input type="number" class="input-biasa" id="in-konversi" placeholder="Contoh: 12" min="1">
+
+        <div class="form-row-2">
+          <div>
+            <label class="form-label" for="in-stok">Stok Awal (dalam Satuan Ecer):</label>
+            <input type="number" class="input-biasa" id="in-stok" placeholder="Contoh: 50">
+          </div>
+          <div>
+            <label class="form-label" for="in-min-stok">Reminder Stok Minimal:</label>
+            <input type="number" class="input-biasa" id="in-min-stok" placeholder="Contoh: 5">
+          </div>
+        </div>
+
+        <button class="btn-primary w-full mt-15" id="btn-simpan" onclick="simpanDataBarang()">Simpan ke
+          Database</button>
+        <button class="btn-danger w-full mt-10" id="btn-batal" onclick="batalkanFormBarang()"
+          style="display: none;">Batal Edit</button>
+      </div>
+    </div>
+
+    <!-- MODAL KELOLA KATEGORI -->
+    <div class="modal-overlay" id="modal-kategori">
+      <div class="modal-content" style="width: 400px;">
+        <div class="modal-header">
+          <span>🏷️ Kelola Kategori</span>
+          <button class="btn-tutup-modal" onclick="tutupModalKategori()">✖</button>
+        </div>
+        <div class="daftar-master-data" id="daftar-kategori">Memuat...</div>
+        <div class="tambah-master-form">
+          <input type="text" class="input-biasa" id="in-kategori-baru" placeholder="Nama kategori baru...">
+          <button class="btn-bulat-hijau" onclick="simpanKategoriBaru()" title="Tambah Kategori">➕</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL KELOLA SATUAN -->
+    <div class="modal-overlay" id="modal-satuan">
+      <div class="modal-content" style="width: 420px;">
+        <div class="modal-header">
+          <span>📏 Kelola Satuan</span>
+          <button class="btn-tutup-modal" onclick="tutupModalSatuan()">✖</button>
+        </div>
+
+        <h4 class="label-grup-satuan">📦 Satuan Besar</h4>
+        <div class="daftar-master-data" id="daftar-satuan-besar">Memuat...</div>
+
+        <h4 class="label-grup-satuan">🔹 Satuan Ecer</h4>
+        <div class="daftar-master-data" id="daftar-satuan-ecer">Memuat...</div>
+
+        <div class="tambah-master-form">
+          <input type="text" class="input-biasa" id="in-satuan-baru" placeholder="Nama satuan baru...">
+          <select class="input-biasa" id="in-satuan-tipe-baru" style="max-width:110px;">
+            <option value="Besar">Besar</option>
+            <option value="Ecer">Ecer</option>
+          </select>
+          <button class="btn-bulat-hijau" onclick="simpanSatuanBaru()" title="Tambah Satuan">➕</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM SHEET SORT / FILTER PRODUK -->
+    <div class="modal-overlay bottom-sheet-overlay" id="modal-sort-filter">
+      <div class="modal-content bottom-sheet-content">
+        <div class="bottom-sheet-handle"></div>
+        <div class="modal-header">
+          <span>⚙️ Urutkan &amp; Filter Produk</span>
+          <button class="btn-tutup-modal" onclick="tutupSortFilter()">✖</button>
+        </div>
+
+        <label class="form-label">Urutkan:</label>
+        <select class="input-biasa" id="sf-urutkan">
+          <option value="terbaru">Terbaru</option>
+          <option value="terlama">Terlama</option>
+          <option value="az">Nama A-Z</option>
+          <option value="za">Nama Z-A</option>
+        </select>
+
+        <label class="form-label mt-15">Filter Kategori:</label>
+        <select class="input-biasa" id="sf-kategori">
+          <option value="semua">Semua Kategori</option>
+          <option value="habis">⚠️ Habis (Stok = 0)</option>
+          <option value="kritis">🔻 Kritis (Di bawah Reminder)</option>
+        </select>
+
+        <button class="btn-primary w-full mt-15" onclick="terapkanSortFilter()">Terapkan</button>
+        <button class="btn-danger w-full mt-10" onclick="resetSortFilter()">Reset</button>
+      </div>
+    </div>
+
+    <!-- MODAL STRUK -->
+    <div class="modal-overlay" id="modal-struk">
+      <div class="modal-content" style="width: 380px;">
+        <div class="modal-header">
+          <span>🧾 Detail Transaksi</span>
+          <button class="btn-tutup-modal" onclick="tutupModal()">✖</button>
+        </div>
+        <div id="modal-info-id"
+          style="font-size:13px; color:var(--text-muted); margin-bottom: 15px; border-bottom: 1px dashed var(--border); padding-bottom: 10px;">
+        </div>
+        <div id="modal-daftar-barang" style="max-height:300px; overflow-y:auto;"></div>
+        <div class="struk-total">
+          <span>Total Akhir:</span>
+          <span id="modal-total-bayar">Rp 0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Transaksi Sukses -->
+    <div class="modal-overlay" id="modal-sukses">
+      <div class="modal-content" style="width: 350px; text-align: center;">
+        <div style="font-size: 50px; color: var(--success); margin-bottom: 10px;">✅</div>
+        <h2 style="margin: 0;">Transaksi Berhasil!</h2>
+        <p style="color: var(--text-muted);">Data telah disimpan ke database.</p>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button class="btn-cetak-struk" style="flex:1" onclick="cetakStrukBaru()">🖨️ Cetak Struk</button>
+          <button class="btn-tutup-sukses" style="flex:1" onclick="tutupModalSukses()">Selesai</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <?!= include('Script'); ?>
+</body>
+
+</html>

@@ -1,0 +1,1440 @@
+<script>
+  var dataProdukGlobal = [];
+  var dataRiwayatGlobal = [];
+  var dataKategoriGlobal = [];
+  var dataSatuanGlobal = [];
+  var keranjangBelanja = [];
+  var totalBelanja = 0;
+  var totalModal = 0;
+  var kategoriAktif = 'Semua';
+  var sedangCheckout = false;
+  var chartPenjualan = null;
+  var callbackKonfirmasi = null;
+
+  // Foto produk yang sedang dipilih di form Tambah/Edit Barang (base64)
+  var fotoBase64Terpilih = '';
+  var fotoMimeTerpilih = '';
+
+  // Status urutkan & filter produk yang sedang aktif di Kelola Barang
+  var sortFilterAktif = { urutkan: 'terbaru', kategori: 'semua' };
+
+  // Menyimpan data pembayaran sementara antara langkah 1 (klik Bayar & Selesaikan)
+  // dan langkah 2 (klik Konfirmasi Pembayaran) untuk metode Transfer/QRIS
+  var pendingBayar = 0;
+  var pendingKembalian = 0;
+  var pendingMetode = '';
+
+  var currentToken = null;
+  var currentRole = null;
+  var currentUsername = null;
+
+  // =========================================================
+  // KONFIGURASI PEMBAYARAN
+  // =========================================================
+  var QRIS_IMAGE_URL = "https://gopay.co.id/api/_ipx/f_webp&w_660&q_90/https://d2v6npc8wmnkqk.cloudfront.net/storage/26035/conversions/Tipe-QRIS-statis-small-large.jpg";
+  var BANK_NAMA = "BCA";
+  var BANK_NOREK = "1234567890";
+  var BANK_ATASNAMA = "Nama Toko Anda";
+
+  // Ukuran kertas printer thermal: ganti ke "58mm" kalau printer Anda memakai kertas 58mm
+  var UKURAN_KERTAS_STRUK = "80mm";
+
+  function formatRupiahRealtime(elemen) {
+    var angkaMurni = elemen.value.replace(/[^\d]/g, '');
+    elemen.value = angkaMurni.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
+  function hapusTitik(teks) {
+    if (!teks) return 0;
+    return parseInt(teks.toString().replace(/\./g, ''), 10);
+  }
+
+  function beriTitik(angka) {
+    if (!angka) return '';
+    return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
+  // =========================================================
+  // TOAST NOTIFIKASI (pengganti alert())
+  // =========================================================
+  function tampilkanToast(pesan, tipe) {
+    tipe = tipe || 'info';
+    var container = document.getElementById('toast-container');
+    var icon = tipe === 'sukses' ? '✅' : (tipe === 'error' ? '⚠️' : 'ℹ️');
+
+    var toast = document.createElement('div');
+    toast.className = 'toast toast-' + tipe;
+    toast.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-pesan">${pesan}</span>`;
+    container.appendChild(toast);
+
+    requestAnimationFrame(function () { toast.classList.add('show'); });
+
+    setTimeout(function () {
+      toast.classList.remove('show');
+      setTimeout(function () { toast.remove(); }, 300);
+    }, 3200);
+  }
+
+  // =========================================================
+  // MODAL KONFIRMASI (pengganti confirm())
+  // =========================================================
+  function tampilkanKonfirmasi(pesan, onYa, opsi) {
+    opsi = opsi || {};
+    document.getElementById('konfirmasi-pesan').innerText = pesan;
+    document.getElementById('konfirmasi-judul').innerText = opsi.judul || 'Konfirmasi';
+    document.getElementById('konfirmasi-icon').innerText = opsi.icon || '❓';
+
+    var btnYa = document.getElementById('btn-konfirmasi-ya');
+    btnYa.innerText = opsi.teksYa || 'Ya, Lanjutkan';
+    btnYa.className = (opsi.warna === 'primary') ? 'btn-primary' : 'btn-danger-solid';
+
+    callbackKonfirmasi = onYa;
+    document.getElementById('modal-konfirmasi').style.display = 'flex';
+  }
+
+  function tutupKonfirmasi() {
+    document.getElementById('modal-konfirmasi').style.display = 'none';
+    callbackKonfirmasi = null;
+  }
+
+  document.getElementById('btn-konfirmasi-ya').addEventListener('click', function () {
+    var cb = callbackKonfirmasi;
+    tutupKonfirmasi();
+    if (cb) cb();
+  });
+
+  // =========================================================
+  // MODAL EDIT TEKS (pengganti prompt())
+  // =========================================================
+  var callbackEditTeks = null;
+
+  function bukaEditTeks(judul, nilaiAwal, onSimpan, opsi) {
+    opsi = opsi || {};
+    document.getElementById('edit-teks-judul').innerText = judul;
+    document.getElementById('edit-teks-label').innerText = opsi.label || 'Nama baru:';
+    var input = document.getElementById('edit-teks-input');
+    input.value = nilaiAwal || '';
+    callbackEditTeks = onSimpan;
+    document.getElementById('modal-edit-teks').style.display = 'flex';
+    setTimeout(function () { input.focus(); input.select(); }, 100);
+  }
+
+  function tutupEditTeks() {
+    document.getElementById('modal-edit-teks').style.display = 'none';
+    callbackEditTeks = null;
+  }
+
+  function simpanEditTeks() {
+    var nilaiBaru = document.getElementById('edit-teks-input').value.trim();
+    if (!nilaiBaru) {
+      tampilkanToast('Nama tidak boleh kosong.', 'error');
+      return;
+    }
+    var cb = callbackEditTeks;
+    tutupEditTeks();
+    if (cb) cb(nilaiBaru);
+  }
+
+  // =========================================================
+  // FUNGSI LOGIN
+  // =========================================================
+  function prosesLogin() {
+    var user = document.getElementById('login-user').value.trim();
+    var pass = document.getElementById('login-pass').value;
+    var errBox = document.getElementById('login-error');
+    errBox.innerText = '';
+
+    if (!user || !pass) {
+      errBox.innerText = 'Username dan password wajib diisi.';
+      return;
+    }
+
+    document.getElementById('btn-login').innerText = 'Memeriksa...';
+
+    google.script.run.withSuccessHandler(function (res) {
+      document.getElementById('btn-login').innerText = 'Masuk';
+      if (res.sukses) {
+        sessionStorage.setItem('pos_token', res.token);
+        sessionStorage.setItem('pos_role', res.role);
+        sessionStorage.setItem('pos_username', res.username);
+        mulaiAplikasi(res.role, res.username, res.token);
+      } else {
+        errBox.innerText = res.pesan;
+      }
+    }).withFailureHandler(function (err) {
+      document.getElementById('btn-login').innerText = 'Masuk';
+      errBox.innerText = 'Terjadi kesalahan koneksi. Coba lagi.';
+    }).cekLogin(user, pass);
+  }
+
+  function toggleLihatPassword() {
+    var input = document.getElementById('login-pass');
+    var tombol = document.getElementById('btn-toggle-password');
+    if (input.type === 'password') {
+      input.type = 'text';
+      tombol.innerText = '🙈';
+    } else {
+      input.type = 'password';
+      tombol.innerText = '👁️';
+    }
+  }
+
+  function mulaiAplikasi(role, username, token) {
+    currentRole = role;
+    currentUsername = username;
+    currentToken = token;
+
+    document.getElementById('layar-login').style.display = 'none';
+    document.getElementById('app-container').style.display = 'flex';
+
+    document.getElementById('info-user-nama').innerText = username;
+    document.getElementById('info-user-role').innerText = (role === 'admin') ? 'Admin' : 'Kasir';
+
+    if (role === 'kasir') {
+      document.getElementById('btn-tab-dashboard').style.display = 'none';
+      document.getElementById('btn-tab-admin').style.display = 'none';
+      bukaTab('kasir');
+    } else {
+      document.getElementById('btn-tab-dashboard').style.display = '';
+      document.getElementById('btn-tab-admin').style.display = '';
+      bukaTab('dashboard');
+    }
+
+    google.script.run.withSuccessHandler(function (data) {
+      inisialisasiData(data);
+      if (role === 'admin') {
+        setTimeout(function () { muatDashboard(); }, 300);
+      }
+    }).getDataProduk();
+
+    // Muat master data Kategori & Satuan (dipakai di form Tambah/Edit Barang & modal kelola)
+    muatKategoriSatuan();
+  }
+
+  function muatKategoriSatuan() {
+    google.script.run.withSuccessHandler(function (data) {
+      dataKategoriGlobal = data || [];
+      isiDropdownKategori();
+    }).getDataKategori();
+
+    google.script.run.withSuccessHandler(function (data) {
+      dataSatuanGlobal = data || [];
+      isiDropdownSatuan();
+    }).getDataSatuan();
+  }
+
+  function prosesLogout() {
+    tampilkanKonfirmasi('Yakin ingin keluar dari aplikasi?', function () {
+      if (currentToken) google.script.run.logout(currentToken);
+      sessionStorage.removeItem('pos_token');
+      sessionStorage.removeItem('pos_role');
+      sessionStorage.removeItem('pos_username');
+      kembaliKeLogin();
+    }, { judul: 'Keluar Aplikasi', icon: '🚪', warna: 'primary', teksYa: 'Ya, Keluar' });
+  }
+
+  // Kembali ke layar login tanpa mengandalkan reload halaman penuh
+  // (location.reload() pada web app Apps Script tidak selalu memuat ulang
+  // dengan bersih di semua browser/perangkat, sehingga logout terasa "nyangkut").
+  function kembaliKeLogin() {
+    currentToken = null;
+    currentRole = null;
+    currentUsername = null;
+    keranjangBelanja = [];
+    totalBelanja = 0;
+    totalModal = 0;
+    dataProdukGlobal = [];
+    dataRiwayatGlobal = [];
+    dataKategoriGlobal = [];
+    dataSatuanGlobal = [];
+    kategoriAktif = 'Semua';
+    pendingBayar = 0;
+    pendingKembalian = 0;
+    pendingMetode = '';
+    sedangCheckout = false;
+    fotoBase64Terpilih = '';
+    fotoMimeTerpilih = '';
+    sortFilterAktif = { urutkan: 'terbaru', kategori: 'semua' };
+
+    // Tutup semua modal yang mungkin masih terbuka
+    document.querySelectorAll('.modal-overlay').forEach(function (m) { m.style.display = 'none'; });
+
+    // Sembunyikan aplikasi, tampilkan kembali layar login
+    document.getElementById('app-container').style.display = 'none';
+    document.getElementById('layar-login').style.display = 'flex';
+
+    // Bersihkan form login
+    document.getElementById('login-user').value = '';
+    document.getElementById('login-pass').value = '';
+    document.getElementById('login-error').innerText = '';
+    document.getElementById('btn-login').innerText = 'Masuk';
+  }
+
+  (function cekSesiTersimpan() {
+    var token = sessionStorage.getItem('pos_token');
+    var role = sessionStorage.getItem('pos_role');
+    var username = sessionStorage.getItem('pos_username');
+    if (token && role && username) {
+      mulaiAplikasi(role, username, token);
+    }
+  })();
+
+  function inisialisasiData(data) {
+    dataProdukGlobal = data || [];
+    renderKategori();
+    tampilkanKatalog(dataProdukGlobal);
+    terapkanSortFilterKeTabel();
+  }
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+
+  function bukaTab(nama) {
+    if (currentRole === 'kasir' && (nama === 'dashboard' || nama === 'admin')) {
+      nama = 'kasir';
+    }
+    document.querySelectorAll('.halaman').forEach(el => el.classList.remove('aktif'));
+    document.querySelectorAll('.navbar button').forEach(el => el.classList.remove('aktif'));
+    document.getElementById('tab-' + nama).classList.add('aktif');
+    document.getElementById('btn-tab-' + nama).classList.add('aktif');
+    if (nama === 'dashboard') muatDashboard();
+    if (nama === 'riwayat') muatDataRiwayat();
+  }
+
+  // --- MODAL & BADGE KERANJANG ---
+  function toggleModalKeranjang() {
+    var modal = document.getElementById('modal-keranjang');
+    var akanTampil = (modal.style.display !== 'flex');
+    modal.style.display = akanTampil ? 'flex' : 'none';
+    if (akanTampil) tampilkanInfoPembayaran();
+  }
+
+  function updateCartBadge() {
+    var totalItems = keranjangBelanja.reduce((sum, item) => sum + item.qty, 0);
+    document.getElementById('cart-count').innerText = totalItems;
+  }
+
+  // --- INFO PEMBAYARAN (QRIS / TRANSFER) ---
+  function tampilkanInfoPembayaran() {
+    var metode = document.getElementById('metode-bayar').value;
+    document.getElementById('info-qris').style.display = (metode === 'QRIS') ? 'block' : 'none';
+    document.getElementById('info-transfer').style.display = (metode === 'Transfer') ? 'block' : 'none';
+
+    if (metode === 'QRIS') {
+      document.getElementById('img-qris').src = QRIS_IMAGE_URL;
+    }
+    if (metode === 'Transfer') {
+      document.getElementById('transfer-bank-nama').innerText = BANK_NAMA;
+      document.getElementById('transfer-norek').innerText = BANK_NOREK;
+      document.getElementById('transfer-an').innerText = 'a.n. ' + BANK_ATASNAMA;
+    }
+    updateInfoTotalBayar();
+  }
+
+  function updateInfoTotalBayar() {
+    var teks = "Rp " + totalBelanja.toLocaleString('id-ID');
+    document.getElementById('qris-total').innerText = teks;
+    document.getElementById('transfer-total').innerText = teks;
+  }
+
+  // --- KATEGORI & PRODUK ---
+  function renderKategori() {
+    var kategoriUnik = ["Semua"];
+    if (dataKategoriGlobal && dataKategoriGlobal.length > 0) {
+      dataKategoriGlobal.forEach(row => {
+        var nama = row[1];
+        if (nama && !kategoriUnik.includes(nama)) kategoriUnik.push(nama);
+      });
+    } else {
+      // Fallback kalau master kategori belum termuat: turunkan dari data produk yang ada
+      dataProdukGlobal.forEach(item => {
+        var kat = item[2];
+        if (kat && kat.trim() !== "" && !kategoriUnik.includes(kat)) kategoriUnik.push(kat);
+      });
+    }
+    var html = '';
+    kategoriUnik.forEach(kat => {
+      html += `<button class="btn-kategori" onclick="filterKategori('${kat}', this)">${kat}</button>`;
+    });
+    document.getElementById('list-kategori').innerHTML = html;
+    setTimeout(() => {
+      var btnPertama = document.querySelector('.btn-kategori');
+      if (btnPertama) btnPertama.classList.add('aktif');
+    }, 100);
+  }
+
+  function filterKategori(kategori, elemen) {
+    kategoriAktif = kategori;
+    document.querySelectorAll('.btn-kategori').forEach(btn => btn.classList.remove('aktif'));
+    if (elemen) elemen.classList.add('aktif');
+    cariBarang();
+  }
+
+  function cariBarang() {
+    var kataKunci = document.getElementById('input-cari').value.toLowerCase();
+    var hasil = dataProdukGlobal.filter(item => {
+      var cocokKategori = (kategoriAktif === 'Semua') || (item[2] === kategoriAktif);
+      var cocokNama = item[1].toString().toLowerCase().includes(kataKunci) || item[0].toString().toLowerCase().includes(kataKunci);
+      return cocokKategori && cocokNama;
+    });
+    tampilkanKatalog(hasil);
+  }
+
+  function tampilkanKatalog(dataArray) {
+    var wadah = document.getElementById('grid-produk');
+    wadah.innerHTML = '';
+    if (!dataArray || dataArray.length === 0) {
+      wadah.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #a0aec0; padding: 40px;">Barang tidak ditemukan.</div>';
+      return;
+    }
+    dataArray.forEach(item => {
+      var stokFisik = Number(item[5]) || 0;
+      var btnState = stokFisik <= 0 ? 'disabled' : '';
+      var btnText = stokFisik <= 0 ? 'Stok Habis' : '+ Masuk Keranjang';
+      var actionClick = stokFisik <= 0 ? '' : `onclick="tambahKeKeranjang('${item[0]}', '${(item[1] || '').replace(/'/g, "\\'")}', ${item[3] || 0}, ${item[4] || 0}, ${stokFisik})"`;
+      var fotoUrl = item[6] || '';
+      var fotoHtml = fotoUrl ? `<img src="${fotoUrl}" class="foto-produk-kasir" alt="${item[1]}" onerror="this.style.display='none'">` : '';
+
+      wadah.innerHTML += `
+      <div class="card-produk">
+        <div>
+          ${fotoHtml}
+          <span class="badge-kat">${item[2] || '-'}</span>
+          <div class="nama-prod">${item[1]}</div>
+          <div class="harga-prod">Rp ${Number(item[4] || 0).toLocaleString('id-ID')}</div>
+          <div style="font-size: 12px; color: #718096; margin-bottom:10px;">Sisa Stok: <strong style="${stokFisik <= 0 ? 'color:#e53e3e' : ''}">${stokFisik}</strong></div>
+        </div>
+        <button class="btn-tambah-cart" ${btnState} ${actionClick}>${btnText}</button>
+      </div>
+    `;
+    });
+  }
+
+  // --- KERANJANG ---
+  function tambahKeKeranjang(id, nama, hpp, harga, stokMaksimal) {
+    var indexBarang = keranjangBelanja.findIndex(item => item.id === id);
+    if (indexBarang !== -1) {
+      if (keranjangBelanja[indexBarang].qty >= stokMaksimal) {
+        tampilkanToast("Stok tidak mencukupi! Sisa stok hanya " + stokMaksimal, 'error');
+        return;
+      }
+      keranjangBelanja[indexBarang].qty += 1;
+    } else {
+      if (stokMaksimal < 1) {
+        tampilkanToast("Barang ini sudah habis!", 'error');
+        return;
+      }
+      keranjangBelanja.push({ id: id, nama: nama, hpp: hpp, harga: harga, qty: 1, maxStok: stokMaksimal });
+    }
+    totalBelanja += harga;
+    totalModal += hpp;
+
+    renderKeranjang();
+    hitungKembalian();
+    updateCartBadge();
+  }
+
+  function ubahQty(id, nilaiPerubahan) {
+    var index = keranjangBelanja.findIndex(item => item.id === id);
+    if (index !== -1) {
+      var item = keranjangBelanja[index];
+      if (nilaiPerubahan === 1 && item.qty >= item.maxStok) {
+        tampilkanToast("Stok tidak mencukupi! Sisa stok hanya " + item.maxStok, 'error');
+        return;
+      }
+      if (item.qty === 1 && nilaiPerubahan === -1) {
+        hapusDariKeranjang(id);
+        return;
+      }
+      item.qty += nilaiPerubahan;
+      totalBelanja += (nilaiPerubahan * item.harga);
+      totalModal += (nilaiPerubahan * item.hpp);
+
+      renderKeranjang();
+      hitungKembalian();
+      updateCartBadge();
+    }
+  }
+
+  function hapusDariKeranjang(id) {
+    var index = keranjangBelanja.findIndex(item => item.id === id);
+    if (index !== -1) {
+      var item = keranjangBelanja[index];
+      totalBelanja -= (item.qty * item.harga);
+      totalModal -= (item.qty * item.hpp);
+      keranjangBelanja.splice(index, 1);
+
+      renderKeranjang();
+      hitungKembalian();
+      updateCartBadge();
+    }
+  }
+
+  function renderKeranjang() {
+    var wadah = document.getElementById('keranjang');
+    wadah.innerHTML = '';
+
+    if (keranjangBelanja.length === 0) {
+      wadah.innerHTML = '<div style="text-align:center; color:#a0aec0; margin-top:20px;">Keranjang kosong</div>';
+    } else {
+      keranjangBelanja.forEach(k => {
+        var subtotal = k.qty * k.harga;
+        var btnPlusState = k.qty >= k.maxStok ? 'disabled' : '';
+
+        wadah.innerHTML += `
+        <div class="cart-item">
+          <div class="cart-item-header">
+            <span style="width: 65%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${k.nama}</span>
+            <span>Rp ${subtotal.toLocaleString('id-ID')}</span>
+          </div>
+          <div class="cart-item-detail">
+            <span>Rp ${k.harga.toLocaleString('id-ID')} / item</span>
+            <div class="cart-aksi">
+              <button class="btn-qty" onclick="ubahQty('${k.id}', -1)">-</button>
+              <span style="margin: 0 10px; font-weight: bold; color: #2d3748; font-size: 14px;">${k.qty}</span>
+              <button class="btn-qty" onclick="ubahQty('${k.id}', 1)" ${btnPlusState}>+</button>
+              <button class="btn-hapus-cart" onclick="hapusDariKeranjang('${k.id}')">🗑️</button>
+            </div>
+          </div>
+        </div>`;
+      });
+    }
+    document.getElementById('total-harga').innerText = "Rp " + totalBelanja.toLocaleString('id-ID');
+    updateInfoTotalBayar();
+  }
+
+  function hitungKembalian() {
+    var bayar = hapusTitik(document.getElementById('input-bayar').value);
+    var sisa = bayar - totalBelanja;
+    var el = document.getElementById('teks-kembalian');
+    if (totalBelanja === 0) { el.innerText = "Rp 0"; el.style.color = "#e53e3e"; return; }
+    if (sisa < 0) { el.innerText = "Uang Kurang!"; el.style.color = "#e53e3e"; }
+    else { el.innerText = "Rp " + sisa.toLocaleString('id-ID'); el.style.color = "#38a169"; }
+  }
+
+  function setUangBayar(nominal) {
+    var inputBayar = document.getElementById('input-bayar');
+    if (nominal === 'pas') {
+      inputBayar.value = beriTitik(totalBelanja);
+    } else {
+      inputBayar.value = beriTitik(nominal);
+    }
+    hitungKembalian();
+  }
+
+  function prosesCheckout() {
+    if (sedangCheckout) return;
+    var bayar = hapusTitik(document.getElementById('input-bayar').value);
+    var kembalian = bayar - totalBelanja;
+    var metodeBayar = document.getElementById('metode-bayar').value;
+
+    if (keranjangBelanja.length === 0) {
+      tampilkanToast("Keranjang masih kosong!", 'error');
+      return;
+    }
+    if (bayar < totalBelanja) {
+      tampilkanToast("Uang pembayaran kurang! Sisa " + (totalBelanja - bayar).toLocaleString('id-ID'), 'error');
+      var inputBayar = document.getElementById('input-bayar');
+      inputBayar.classList.add('input-error-shake');
+      setTimeout(function () { inputBayar.classList.remove('input-error-shake'); }, 500);
+      return;
+    }
+
+    // Simpan sementara, dipakai lagi saat konfirmasi (Transfer/QRIS) atau langsung dieksekusi (Tunai)
+    pendingBayar = bayar;
+    pendingKembalian = kembalian;
+    pendingMetode = metodeBayar;
+
+    if (metodeBayar === 'Transfer' || metodeBayar === 'QRIS') {
+      document.getElementById('modal-keranjang').style.display = 'none';
+      bukaVerifikasiBayar(metodeBayar);
+      return;
+    }
+
+    // Tunai: tidak perlu verifikasi 2 langkah, langsung proses
+    eksekusiTransaksi();
+  }
+
+  // --- VERIFIKASI PEMBAYARAN 2 LANGKAH (TRANSFER / QRIS) ---
+  function bukaVerifikasiBayar(metode) {
+    var teksTotal = "Rp " + totalBelanja.toLocaleString('id-ID');
+
+    document.getElementById('verifikasi-transfer').style.display = (metode === 'Transfer') ? 'block' : 'none';
+    document.getElementById('verifikasi-qris').style.display = (metode === 'QRIS') ? 'block' : 'none';
+    document.getElementById('verifikasi-judul').innerText = (metode === 'Transfer') ? '🏧 Verifikasi Transfer' : '📱 Verifikasi QRIS';
+
+    if (metode === 'Transfer') {
+      document.getElementById('verif-bank-nama').innerText = BANK_NAMA;
+      document.getElementById('verif-bank-norek').innerText = BANK_NOREK;
+      document.getElementById('verif-bank-an').innerText = 'a.n. ' + BANK_ATASNAMA;
+      document.getElementById('verif-transfer-total').innerText = teksTotal;
+    }
+    if (metode === 'QRIS') {
+      document.getElementById('verif-qris-img').src = QRIS_IMAGE_URL;
+      document.getElementById('verif-qris-total').innerText = teksTotal;
+    }
+
+    document.getElementById('modal-verifikasi-bayar').style.display = 'flex';
+  }
+
+  function batalkanVerifikasiBayar() {
+    if (sedangCheckout) return; // jangan biarkan dibatalkan saat sedang menyimpan ke server
+    document.getElementById('modal-verifikasi-bayar').style.display = 'none';
+    document.getElementById('modal-keranjang').style.display = 'flex';
+  }
+
+  function konfirmasiPembayaran() {
+    eksekusiTransaksi();
+  }
+
+  function eksekusiTransaksi() {
+    if (sedangCheckout) return;
+    sedangCheckout = true;
+
+    var pakaiVerifikasi = (pendingMetode === 'Transfer' || pendingMetode === 'QRIS');
+    var tombolAktif = pakaiVerifikasi
+      ? document.getElementById('btn-konfirmasi-bayar')
+      : document.querySelector('.btn-bayar');
+    var teksAsli = tombolAktif.innerText;
+    tombolAktif.innerText = "Memproses...";
+    tombolAktif.disabled = true;
+
+    google.script.run.withSuccessHandler(function (pesan) {
+      tombolAktif.innerText = teksAsli;
+      tombolAktif.disabled = false;
+      sedangCheckout = false;
+
+      if (pesan.includes("Berhasil")) {
+        document.getElementById('modal-keranjang').style.display = 'none';
+        document.getElementById('modal-verifikasi-bayar').style.display = 'none';
+        document.getElementById('modal-sukses').style.display = 'flex';
+      } else {
+        tampilkanToast(pesan, 'error');
+      }
+    }).withFailureHandler(function () {
+      tombolAktif.innerText = teksAsli;
+      tombolAktif.disabled = false;
+      sedangCheckout = false;
+      tampilkanToast('Terjadi kesalahan koneksi. Coba lagi.', 'error');
+    }).simpanTransaksi(keranjangBelanja, totalBelanja, totalModal, pendingBayar, pendingKembalian, pendingMetode, currentToken);
+  }
+
+  function tutupModalSukses() {
+    document.getElementById('modal-sukses').style.display = 'none';
+    keranjangBelanja = [];
+    renderKeranjang();
+    updateCartBadge();
+    document.getElementById('input-bayar').value = '';
+    document.getElementById('metode-bayar').value = 'Tunai';
+    tampilkanInfoPembayaran();
+    hitungKembalian();
+
+    pendingBayar = 0;
+    pendingKembalian = 0;
+    pendingMetode = '';
+
+    google.script.run.withSuccessHandler(inisialisasiData).getDataProduk();
+  }
+
+  // Cetak Struk Thermal
+  function cetakStrukBaru() {
+    var lebar = UKURAN_KERTAS_STRUK;
+    var kontenStruk = `
+    <html>
+      <head>
+        <title>Struk Pembayaran</title>
+        <style>
+          @page { size: ${lebar} auto; margin: 0; }
+          * { box-sizing: border-box; }
+          html, body { width: ${lebar}; margin: 0 auto; padding: 0; }
+          body { font-family: 'Courier New', Courier, monospace; font-size: 12px; padding: 6px 8px; }
+          .center { text-align: center; }
+          .border { border-top: 1px dashed #000; margin: 8px 0; }
+          .item-row { display: flex; justify-content: space-between; gap: 6px; margin-bottom: 4px; }
+          @media print { html, body { width: ${lebar}; } }
+        </style>
+      </head>
+      <body>
+        <div class="center">
+          <strong>TOKO ANDA</strong><br>
+          ${new Date().toLocaleString()}
+        </div>
+        <div class="border"></div>
+        ${keranjangBelanja.map(i => `
+          <div class="item-row">
+            <span>${i.qty}x ${i.nama}</span>
+            <span>Rp ${(i.qty * i.harga).toLocaleString()}</span>
+          </div>
+        `).join('')}
+        <div class="border"></div>
+        <div style="text-align:right; font-weight:bold; font-size:14px;">
+          TOTAL: Rp ${totalBelanja.toLocaleString()}
+        </div>
+        <div class="center" style="margin-top:16px;">
+          <p>Terima Kasih!</p>
+        </div>
+      </body>
+    </html>
+  `;
+
+    var blob = new Blob([kontenStruk], { type: 'text/html' });
+    var url = URL.createObjectURL(blob);
+    var win = window.open(url, '_blank');
+
+    win.onload = function () {
+      win.print();
+      win.onafterprint = function () {
+        win.close();
+        URL.revokeObjectURL(url);
+      };
+    };
+  }
+
+  // --- ADMIN & BARANG ---
+  function tampilkanTabelAdmin(data) {
+    var tbody = document.getElementById('tabel-data');
+    tbody.innerHTML = '';
+    if (!data || data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Belum ada barang. Klik "Tambah Barang" untuk mulai.</td></tr>';
+      return;
+    }
+    data.forEach(item => {
+      var fotoUrl = item[6] || '';
+      var fotoHtml = fotoUrl
+        ? `<img src="${fotoUrl}" class="foto-tabel-mini" alt="foto" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"><div class="foto-tabel-kosong" style="display:none;">📦</div>`
+        : `<div class="foto-tabel-kosong">📦</div>`;
+
+      tbody.innerHTML += `
+      <tr>
+        <td>${fotoHtml}</td>
+        <td style="font-size:11px; color:#718096;">${item[0]}</td> 
+        <td><strong>${item[1]}</strong></td> 
+        <td>${item[2]}</td> 
+        <td>Rp ${Number(item[3] || 0).toLocaleString('id-ID')}</td> 
+        <td>Rp ${Number(item[4] || 0).toLocaleString('id-ID')}</td> 
+        <td>${item[5]}</td>
+        <td>
+          <div class="aksi-tabel">
+            <button class="btn-edit" title="Edit Barang" onclick="setEdit('${item[0]}')">✏️</button>
+            <button class="btn-hapus" title="Hapus Barang" onclick="hapusBarang('${item[0]}')">🗑️</button>
+          </div>
+        </td>
+      </tr>`;
+    });
+  }
+
+  function simpanDataBarang() {
+    var mode = document.getElementById('mode-edit').value;
+    var id = document.getElementById('in-id').value;
+    var nama = document.getElementById('in-nama').value.trim();
+    var kategori = document.getElementById('in-kategori').value;
+    var stok = document.getElementById('in-stok').value;
+    var minStok = document.getElementById('in-min-stok').value;
+    var hpp = hapusTitik(document.getElementById('in-hpp').value);
+    var harga = hapusTitik(document.getElementById('in-harga').value);
+    var satuanBesar = document.getElementById('in-satuan-besar').value;
+    var satuanEcer = document.getElementById('in-satuan-ecer').value;
+    var konversi = document.getElementById('in-konversi').value;
+
+    if (!nama || !kategori || !hpp || !harga || stok === '') {
+      tampilkanToast("Nama, kategori, HPP, harga jual, dan stok wajib diisi!", 'error');
+      return;
+    }
+    if (mode !== 'edit' && !fotoBase64Terpilih) {
+      tampilkanToast("Foto produk wajib diisi untuk barang baru!", 'error');
+      return;
+    }
+
+    var dataProduk = {
+      id: id,
+      nama: nama,
+      kategori: kategori,
+      hpp: hpp,
+      harga: harga,
+      stok: stok,
+      minStok: minStok || 5,
+      satuanBesar: satuanBesar,
+      satuanEcer: satuanEcer,
+      konversi: konversi || 1,
+      fotoBase64: fotoBase64Terpilih,
+      fotoMime: fotoMimeTerpilih
+    };
+
+    document.getElementById('btn-simpan').innerText = "Menyimpan...";
+    document.getElementById('btn-simpan').disabled = true;
+
+    if (mode === "edit") {
+      google.script.run.withSuccessHandler(selesaiSimpan).withFailureHandler(gagalSimpanBarang).updateProduk(dataProduk, currentToken);
+    } else {
+      google.script.run.withSuccessHandler(selesaiSimpan).withFailureHandler(gagalSimpanBarang).tambahProdukBaru(dataProduk, currentToken);
+    }
+  }
+
+  function gagalSimpanBarang() {
+    tampilkanToast('Gagal menyimpan: koneksi bermasalah. Coba lagi.', 'error');
+    var mode = document.getElementById('mode-edit').value;
+    document.getElementById('btn-simpan').disabled = false;
+    document.getElementById('btn-simpan').innerText = (mode === 'edit') ? 'Update Data' : 'Simpan ke Database';
+  }
+
+  function selesaiSimpan(pesan) {
+    var sukses = pesan.toLowerCase().indexOf('berhasil') !== -1;
+    tampilkanToast(pesan, sukses ? 'sukses' : 'error');
+    document.getElementById('btn-simpan').disabled = false;
+    batalEdit();
+    if (sukses) tutupModalProduk();
+    google.script.run.withSuccessHandler(inisialisasiData).getDataProduk();
+  }
+
+  function setEdit(id) {
+    var item = dataProdukGlobal.find(function (row) { return row[0] == id; });
+    if (!item) {
+      tampilkanToast('Data barang tidak ditemukan (mungkin sudah diubah). Coba muat ulang.', 'error');
+      return;
+    }
+
+    document.getElementById('mode-edit').value = "edit";
+    document.getElementById('form-title').innerText = "Edit Barang (ID: " + id + ")";
+    document.getElementById('in-id').value = item[0];
+    document.getElementById('in-nama').value = item[1];
+    isiDropdownKategori();
+    isiDropdownSatuan();
+    document.getElementById('in-kategori').value = item[2] || '';
+    document.getElementById('in-hpp').value = beriTitik(item[3]);
+    document.getElementById('in-harga').value = beriTitik(item[4]);
+    document.getElementById('in-stok').value = item[5];
+    document.getElementById('in-min-stok').value = item[7] || 5;
+    document.getElementById('in-satuan-besar').value = item[8] || '';
+    document.getElementById('in-satuan-ecer').value = item[9] || '';
+    document.getElementById('in-konversi').value = item[10] || 1;
+    document.getElementById('hint-harga-saran').innerText = '';
+
+    // Foto: tampilkan foto lama sebagai preview (tidak wajib unggah ulang saat edit)
+    fotoBase64Terpilih = '';
+    fotoMimeTerpilih = '';
+    var fotoUrl = item[6] || '';
+    var previewFoto = document.getElementById('preview-foto');
+    var placeholderFoto = document.getElementById('placeholder-foto');
+    if (fotoUrl) {
+      previewFoto.src = fotoUrl;
+      previewFoto.style.display = 'block';
+      placeholderFoto.style.display = 'none';
+    } else {
+      previewFoto.style.display = 'none';
+      placeholderFoto.style.display = 'block';
+    }
+
+    document.getElementById('btn-simpan').innerText = "Update Data";
+    document.getElementById('btn-simpan').style.background = "#ecc94b";
+    document.getElementById('btn-simpan').style.color = "black";
+    document.getElementById('btn-batal').style.display = "block";
+    document.getElementById('modal-produk').style.display = "flex";
+  }
+
+  function batalEdit() {
+    document.getElementById('mode-edit').value = "";
+    document.getElementById('form-title').innerText = "Tambah Barang Baru";
+    document.getElementById('in-id').value = "";
+    document.getElementById('in-nama').value = "";
+    document.getElementById('in-kategori').value = "";
+    document.getElementById('in-hpp').value = "";
+    document.getElementById('in-harga').value = "";
+    document.getElementById('in-stok').value = "";
+    document.getElementById('in-min-stok').value = "";
+    document.getElementById('in-satuan-besar').value = "";
+    document.getElementById('in-satuan-ecer').value = "";
+    document.getElementById('in-konversi').value = "";
+    document.getElementById('in-konversi').placeholder = "Contoh: 12";
+    document.getElementById('hint-harga-saran').innerText = "";
+    document.getElementById('btn-simpan').innerText = "Simpan ke Database";
+    document.getElementById('btn-simpan').style.background = "";
+    document.getElementById('btn-simpan').style.color = "";
+    document.getElementById('btn-batal').style.display = "none";
+
+    // Reset foto yang sedang dipilih
+    fotoBase64Terpilih = '';
+    fotoMimeTerpilih = '';
+    document.getElementById('in-foto-file').value = '';
+    document.getElementById('preview-foto').style.display = 'none';
+    document.getElementById('preview-foto').src = '';
+    document.getElementById('placeholder-foto').style.display = 'block';
+  }
+
+  // Konversi file foto yang dipilih user menjadi base64 untuk diunggah ke Drive
+  function prosesFotoDipilih(input) {
+    var file = input.files && input.files[0];
+    if (!file) return;
+
+    if (file.size > 4 * 1024 * 1024) {
+      tampilkanToast('Ukuran foto maksimal 4MB.', 'error');
+      input.value = '';
+      return;
+    }
+
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var hasil = e.target.result; // format: data:image/jpeg;base64,xxxxx
+      fotoBase64Terpilih = hasil.split(',')[1];
+      fotoMimeTerpilih = file.type || 'image/jpeg';
+
+      document.getElementById('preview-foto').src = hasil;
+      document.getElementById('preview-foto').style.display = 'block';
+      document.getElementById('placeholder-foto').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Saran otomatis Harga Jual = HPP + 25%, dibulatkan ke atas kelipatan 500
+  function saranHargaJual() {
+    var hpp = Number(hapusTitik(document.getElementById('in-hpp').value)) || 0;
+    if (hpp <= 0) {
+      document.getElementById('hint-harga-saran').innerText = '';
+      return;
+    }
+
+    var saran = Math.ceil((hpp * 1.25) / 500) * 500;
+    document.getElementById('hint-harga-saran').innerText = '(saran: Rp ' + saran.toLocaleString('id-ID') + ')';
+
+    var hargaSaatIni = document.getElementById('in-harga').value;
+    if (!hargaSaatIni) {
+      document.getElementById('in-harga').value = beriTitik(saran);
+    }
+  }
+
+  // Saran otomatis Konversi: kalau kombinasi Satuan Besar + Satuan Ecer yang
+  // dipilih pernah dipakai produk lain sebelumnya, isikan nilai Konversi-nya
+  // sebagai saran (tetap bisa diubah manual kalau beda).
+  function saranKonversi() {
+    var satuanBesar = document.getElementById('in-satuan-besar').value;
+    var satuanEcer = document.getElementById('in-satuan-ecer').value;
+    var inputKonversi = document.getElementById('in-konversi');
+
+    if (!satuanBesar || !satuanEcer) return;
+
+    var produkSerupa = dataProdukGlobal.find(function (item) {
+      return item[8] === satuanBesar && item[9] === satuanEcer && Number(item[10]) > 0;
+    });
+
+    if (produkSerupa && !inputKonversi.value) {
+      inputKonversi.value = produkSerupa[10];
+      inputKonversi.placeholder = 'Saran otomatis dari produk lain: ' + produkSerupa[10];
+    }
+  }
+
+  // --- MODAL TAMBAH / EDIT BARANG ---
+  function bukaModalTambah() {
+    batalEdit();
+    isiDropdownKategori();
+    isiDropdownSatuan();
+    document.getElementById('modal-produk').style.display = "flex";
+  }
+
+  function tutupModalProduk() {
+    document.getElementById('modal-produk').style.display = "none";
+  }
+
+  function batalkanFormBarang() {
+    batalEdit();
+    tutupModalProduk();
+  }
+
+  // --- DROPDOWN KATEGORI & SATUAN (dipakai form Tambah/Edit Barang + filter Kasir/Sort) ---
+  function isiDropdownKategori() {
+    var select = document.getElementById('in-kategori');
+    if (select) {
+      var nilaiSaatIni = select.value;
+      select.innerHTML = '<option value="">-- Pilih Kategori --</option>';
+      dataKategoriGlobal.forEach(function (row) {
+        select.innerHTML += '<option value="' + row[1] + '">' + row[1] + '</option>';
+      });
+      if (nilaiSaatIni) select.value = nilaiSaatIni;
+    }
+
+    var selectFilter = document.getElementById('sf-kategori');
+    if (selectFilter) {
+      var nilaiFilterSaatIni = selectFilter.value;
+      var opsi = '<option value="semua">Semua Kategori</option><option value="habis">⚠️ Habis (Stok = 0)</option><option value="kritis">🔻 Kritis (Di bawah Reminder)</option>';
+      dataKategoriGlobal.forEach(function (row) {
+        opsi += '<option value="' + row[1] + '">' + row[1] + '</option>';
+      });
+      selectFilter.innerHTML = opsi;
+      if (nilaiFilterSaatIni) selectFilter.value = nilaiFilterSaatIni;
+    }
+
+    renderKategori();
+  }
+
+  function isiDropdownSatuan() {
+    var selectBesar = document.getElementById('in-satuan-besar');
+    var selectEcer = document.getElementById('in-satuan-ecer');
+    if (!selectBesar || !selectEcer) return;
+
+    var nilaiBesar = selectBesar.value;
+    var nilaiEcer = selectEcer.value;
+    selectBesar.innerHTML = '<option value="">-- Pilih --</option>';
+    selectEcer.innerHTML = '<option value="">-- Pilih --</option>';
+
+    dataSatuanGlobal.forEach(function (row) {
+      var opsi = '<option value="' + row[1] + '">' + row[1] + '</option>';
+      if (row[2] === 'Besar') selectBesar.innerHTML += opsi;
+      else if (row[2] === 'Ecer') selectEcer.innerHTML += opsi;
+    });
+
+    if (nilaiBesar) selectBesar.value = nilaiBesar;
+    if (nilaiEcer) selectEcer.value = nilaiEcer;
+  }
+
+  function hapusBarang(id) {
+    tampilkanKonfirmasi("Yakin ingin menghapus barang ini? Tindakan ini tidak bisa dibatalkan.", function () {
+      google.script.run.withSuccessHandler(selesaiSimpan).hapusProduk(id, currentToken);
+    }, { judul: 'Hapus Barang', icon: '🗑️' });
+  }
+
+  // =========================================================
+  // KELOLA KATEGORI (MASTER DATA)
+  // =========================================================
+  function bukaModalKategori() {
+    document.getElementById('modal-kategori').style.display = 'flex';
+    tampilkanDaftarKategori();
+  }
+
+  function tutupModalKategori() {
+    document.getElementById('modal-kategori').style.display = 'none';
+    document.getElementById('in-kategori-baru').value = '';
+  }
+
+  function tampilkanDaftarKategori() {
+    var wadah = document.getElementById('daftar-kategori');
+    if (!dataKategoriGlobal || dataKategoriGlobal.length === 0) {
+      wadah.innerHTML = '<div class="master-data-kosong">Belum ada kategori. Tambahkan di bawah.</div>';
+      return;
+    }
+    var html = '';
+    dataKategoriGlobal.forEach(function (row) {
+      var id = row[0], nama = row[1];
+      html += `
+      <div class="item-master-data">
+        <span>${nama}</span>
+        <div class="aksi-master">
+          <button class="btn-edit" title="Edit Kategori" onclick="editKategoriPrompt('${id}', '${(nama || '').replace(/'/g, "\\'")}')">✏️</button>
+          <button class="btn-hapus" title="Hapus Kategori" onclick="hapusKategoriConfirm('${id}', '${(nama || '').replace(/'/g, "\\'")}')">🗑️</button>
+        </div>
+      </div>`;
+    });
+    wadah.innerHTML = html;
+  }
+
+  function simpanKategoriBaru() {
+    var nama = document.getElementById('in-kategori-baru').value.trim();
+    if (!nama) {
+      tampilkanToast('Nama kategori tidak boleh kosong.', 'error');
+      return;
+    }
+    google.script.run.withSuccessHandler(function (pesan) {
+      var sukses = pesan.toLowerCase().indexOf('berhasil') !== -1;
+      tampilkanToast(pesan, sukses ? 'sukses' : 'error');
+      if (sukses) {
+        document.getElementById('in-kategori-baru').value = '';
+        muatUlangKategori();
+      }
+    }).tambahKategori(nama, currentToken);
+  }
+
+  function editKategoriPrompt(id, namaLama) {
+    bukaEditTeks('🏷️ Ubah Nama Kategori', namaLama, function (namaBaru) {
+      if (namaBaru === namaLama) return;
+      google.script.run.withSuccessHandler(function (pesan) {
+        var sukses = pesan.toLowerCase().indexOf('berhasil') !== -1;
+        tampilkanToast(pesan, sukses ? 'sukses' : 'error');
+        if (sukses) muatUlangKategori();
+      }).updateKategori(id, namaBaru, currentToken);
+    }, { label: 'Nama kategori:' });
+  }
+
+  function hapusKategoriConfirm(id, nama) {
+    tampilkanKonfirmasi("Yakin ingin menghapus kategori '" + nama + "'?", function () {
+      google.script.run.withSuccessHandler(function (pesan) {
+        var sukses = pesan.toLowerCase().indexOf('berhasil') !== -1;
+        tampilkanToast(pesan, sukses ? 'sukses' : 'error');
+        if (sukses) muatUlangKategori();
+      }).hapusKategori(id, currentToken);
+    }, { judul: 'Hapus Kategori', icon: '🗑️' });
+  }
+
+  function muatUlangKategori() {
+    google.script.run.withSuccessHandler(function (data) {
+      dataKategoriGlobal = data || [];
+      isiDropdownKategori();
+      tampilkanDaftarKategori();
+    }).getDataKategori();
+  }
+
+  // =========================================================
+  // KELOLA SATUAN (MASTER DATA - Besar & Ecer)
+  // =========================================================
+  function bukaModalSatuan() {
+    document.getElementById('modal-satuan').style.display = 'flex';
+    tampilkanDaftarSatuan();
+  }
+
+  function tutupModalSatuan() {
+    document.getElementById('modal-satuan').style.display = 'none';
+    document.getElementById('in-satuan-baru').value = '';
+  }
+
+  function tampilkanDaftarSatuan() {
+    var wadahBesar = document.getElementById('daftar-satuan-besar');
+    var wadahEcer = document.getElementById('daftar-satuan-ecer');
+    var htmlBesar = '', htmlEcer = '';
+
+    dataSatuanGlobal.forEach(function (row) {
+      var id = row[0], nama = row[1], tipe = row[2];
+      var baris = `
+      <div class="item-master-data">
+        <span>${nama}</span>
+        <div class="aksi-master">
+          <button class="btn-edit" title="Edit Satuan" onclick="editSatuanPrompt('${id}', '${(nama || '').replace(/'/g, "\\'")}', '${tipe}')">✏️</button>
+          <button class="btn-hapus" title="Hapus Satuan" onclick="hapusSatuanConfirm('${id}', '${(nama || '').replace(/'/g, "\\'")}')">🗑️</button>
+        </div>
+      </div>`;
+      if (tipe === 'Besar') htmlBesar += baris; else if (tipe === 'Ecer') htmlEcer += baris;
+    });
+
+    wadahBesar.innerHTML = htmlBesar || '<div class="master-data-kosong">Belum ada satuan besar.</div>';
+    wadahEcer.innerHTML = htmlEcer || '<div class="master-data-kosong">Belum ada satuan ecer.</div>';
+  }
+
+  function simpanSatuanBaru() {
+    var nama = document.getElementById('in-satuan-baru').value.trim();
+    var tipe = document.getElementById('in-satuan-tipe-baru').value;
+    if (!nama) {
+      tampilkanToast('Nama satuan tidak boleh kosong.', 'error');
+      return;
+    }
+    google.script.run.withSuccessHandler(function (pesan) {
+      var sukses = pesan.toLowerCase().indexOf('berhasil') !== -1;
+      tampilkanToast(pesan, sukses ? 'sukses' : 'error');
+      if (sukses) {
+        document.getElementById('in-satuan-baru').value = '';
+        muatUlangSatuan();
+      }
+    }).tambahSatuan(nama, tipe, currentToken);
+  }
+
+  function editSatuanPrompt(id, namaLama, tipeLama) {
+    bukaEditTeks('📏 Ubah Nama Satuan', namaLama, function (namaBaru) {
+      if (namaBaru === namaLama) return;
+      google.script.run.withSuccessHandler(function (pesan) {
+        var sukses = pesan.toLowerCase().indexOf('berhasil') !== -1;
+        tampilkanToast(pesan, sukses ? 'sukses' : 'error');
+        if (sukses) muatUlangSatuan();
+      }).updateSatuan(id, namaBaru, tipeLama, currentToken);
+    }, { label: 'Nama satuan:' });
+  }
+
+  function hapusSatuanConfirm(id, nama) {
+    tampilkanKonfirmasi("Yakin ingin menghapus satuan '" + nama + "'?", function () {
+      google.script.run.withSuccessHandler(function (pesan) {
+        var sukses = pesan.toLowerCase().indexOf('berhasil') !== -1;
+        tampilkanToast(pesan, sukses ? 'sukses' : 'error');
+        if (sukses) muatUlangSatuan();
+      }).hapusSatuan(id, currentToken);
+    }, { judul: 'Hapus Satuan', icon: '🗑️' });
+  }
+
+  function muatUlangSatuan() {
+    google.script.run.withSuccessHandler(function (data) {
+      dataSatuanGlobal = data || [];
+      isiDropdownSatuan();
+      tampilkanDaftarSatuan();
+    }).getDataSatuan();
+  }
+
+  // =========================================================
+  // SORT / FILTER PRODUK (bottom sheet, untuk Kelola Barang)
+  // =========================================================
+  function bukaSortFilter() {
+    document.getElementById('sf-urutkan').value = sortFilterAktif.urutkan;
+    document.getElementById('sf-kategori').value = sortFilterAktif.kategori;
+    document.getElementById('modal-sort-filter').style.display = 'flex';
+  }
+
+  function tutupSortFilter() {
+    document.getElementById('modal-sort-filter').style.display = 'none';
+  }
+
+  function terapkanSortFilter() {
+    sortFilterAktif.urutkan = document.getElementById('sf-urutkan').value;
+    sortFilterAktif.kategori = document.getElementById('sf-kategori').value;
+    tutupSortFilter();
+    terapkanSortFilterKeTabel();
+  }
+
+  function resetSortFilter() {
+    sortFilterAktif = { urutkan: 'terbaru', kategori: 'semua' };
+    tutupSortFilter();
+    terapkanSortFilterKeTabel();
+  }
+
+  function terapkanSortFilterKeTabel() {
+    var data = dataProdukGlobal.slice(); // salinan, jangan ubah array aslinya
+
+    // Urutan asli sheet = urutan input (baris paling bawah = paling baru)
+    // dataProdukGlobal sudah dalam urutan itu apa adanya, jadi "Terbaru" = dibalik
+    if (sortFilterAktif.urutkan === 'terbaru') {
+      data.reverse();
+    } else if (sortFilterAktif.urutkan === 'terlama') {
+      // urutan asli, tidak perlu diubah
+    } else if (sortFilterAktif.urutkan === 'az') {
+      data.sort(function (a, b) { return String(a[1]).localeCompare(String(b[1])); });
+    } else if (sortFilterAktif.urutkan === 'za') {
+      data.sort(function (a, b) { return String(b[1]).localeCompare(String(a[1])); });
+    }
+
+    if (sortFilterAktif.kategori === 'habis') {
+      data = data.filter(function (item) { return (Number(item[5]) || 0) === 0; });
+    } else if (sortFilterAktif.kategori === 'kritis') {
+      data = data.filter(function (item) {
+        var stok = Number(item[5]) || 0;
+        var minStok = Number(item[7]) || 5;
+        return stok > 0 && stok <= minStok;
+      });
+    } else if (sortFilterAktif.kategori !== 'semua') {
+      data = data.filter(function (item) { return item[2] === sortFilterAktif.kategori; });
+    }
+
+    tampilkanTabelAdmin(data);
+  }
+
+  // --- RIWAYAT & STRUK ---
+  function muatDataRiwayat() {
+    var inputCari = document.getElementById('input-cari-riwayat');
+    if (inputCari) inputCari.value = '';
+
+    var tbody = document.getElementById('tabel-riwayat');
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">Memuat data terbaru dari server...</td></tr>';
+    google.script.run.withSuccessHandler(function (data) {
+      dataRiwayatGlobal = data || [];
+      tampilkanRiwayat(dataRiwayatGlobal);
+    }).getDataTransaksi();
+  }
+
+  function cariRiwayat() {
+    var kataKunci = document.getElementById('input-cari-riwayat').value.toLowerCase().trim();
+    if (!kataKunci) {
+      tampilkanRiwayat(dataRiwayatGlobal);
+      return;
+    }
+    var hasil = dataRiwayatGlobal.filter(function (item) {
+      if (!item) return false;
+      var idTrx = String(item[0] || '').toLowerCase();
+      var tanggalFormat = item[1] ? new Date(item[1]).toLocaleString('id-ID').toLowerCase() : '';
+      var metode = String(item[7] || '').toLowerCase();
+      var status = String(item[8] || '').toLowerCase();
+      return idTrx.includes(kataKunci) || tanggalFormat.includes(kataKunci) || metode.includes(kataKunci) || status.includes(kataKunci);
+    });
+    tampilkanRiwayat(hasil);
+  }
+
+  function tampilkanRiwayat(data) {
+    var tbody = document.getElementById('tabel-riwayat');
+    tbody.innerHTML = '';
+
+    if (!data || data.length === 0) {
+      var inputCari = document.getElementById('input-cari-riwayat');
+      var sedangMencari = inputCari && inputCari.value.trim() !== '';
+      var pesanKosong = sedangMencari ? 'Tidak ditemukan transaksi yang cocok dengan pencarian.' : 'Belum ada data transaksi.';
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">' + pesanKosong + '</td></tr>';
+      return;
+    }
+
+    data.forEach(function (item) {
+      if (item && item.length > 0) {
+        var tanggalFormat = item[1] ? new Date(item[1]).toLocaleString('id-ID') : "-";
+        var jsonAman = encodeURIComponent(item[2] || '[]');
+        var metodePembayaran = item[7] || "Tunai";
+        var status = item[8] || "Selesai";
+        var badgeStatus = status === "Dibatalkan"
+          ? '<span class="badge-status badge-batal">Dibatalkan</span>'
+          : '<span class="badge-status badge-selesai">Selesai</span>';
+
+        var tombolBatal = '';
+        if (currentRole === 'admin' && status !== 'Dibatalkan') {
+          tombolBatal = `<button class="btn-batal-trx" onclick="batalkanTransaksi('${item[0]}')">Batalkan</button>`;
+        }
+
+        tbody.innerHTML += `
+        <tr>
+          <td>${tanggalFormat}</td>
+          <td>${item[0] || "-"}</td>
+          <td><strong>${metodePembayaran}</strong></td>
+          <td>${badgeStatus}</td>
+          <td><strong>Rp ${Number(item[3] || 0).toLocaleString('id-ID')}</strong></td>
+          <td style="color:#38a169;">Rp ${Number(item[4] || 0).toLocaleString('id-ID')}</td>
+          <td>Rp ${Number(item[5] || 0).toLocaleString('id-ID')}</td>
+          <td>Rp ${Number(item[6] || 0).toLocaleString('id-ID')}</td>
+          <td>
+            <button class="btn-detail" onclick="bukaModalStruk('${item[0]}', '${jsonAman}', ${item[3] || 0}, '${metodePembayaran}')">Lihat Struk</button>
+            ${tombolBatal}
+          </td>
+        </tr>
+      `;
+      }
+    });
+  }
+
+  function batalkanTransaksi(idTrx) {
+    tampilkanKonfirmasi("Yakin ingin membatalkan transaksi " + idTrx + "? Stok barang akan dikembalikan.", function () {
+      google.script.run.withSuccessHandler(function (pesan) {
+        var sukses = pesan.toLowerCase().indexOf('berhasil') !== -1;
+        tampilkanToast(pesan, sukses ? 'sukses' : 'error');
+        muatDataRiwayat();
+        google.script.run.withSuccessHandler(inisialisasiData).getDataProduk();
+      }).batalTransaksi(idTrx, currentToken);
+    }, { judul: 'Batalkan Transaksi', icon: '↩️' });
+  }
+
+  function bukaModalStruk(idTrx, jsonBarangAman, total, metode) {
+    document.getElementById('modal-struk').style.display = 'flex';
+    document.getElementById('modal-info-id').innerHTML = `ID Trx: <strong>${idTrx}</strong><br>Metode: <strong>${metode}</strong>`;
+    document.getElementById('modal-total-bayar').innerText = "Rp " + Number(total).toLocaleString('id-ID');
+
+    var daftarBarang = JSON.parse(decodeURIComponent(jsonBarangAman));
+    var wadahDaftar = document.getElementById('modal-daftar-barang');
+    wadahDaftar.innerHTML = '';
+    daftarBarang.forEach(brg => {
+      wadahDaftar.innerHTML += `
+      <div class="struk-item">
+        <div>${brg.nama} <span style="color:#718096; font-size:11px;">(x${brg.qty})</span></div>
+        <div>Rp ${Number(brg.harga).toLocaleString('id-ID')}</div>
+      </div>
+    `;
+    });
+  }
+
+  function tutupModal() {
+    document.getElementById('modal-struk').style.display = 'none';
+  }
+
+  // --- DASHBOARD (Grafik & Ringkasan) ---
+  function muatDashboard() {
+    document.getElementById("dashboard-data").innerHTML = `
+    <div style="padding:40px; text-align:center; color:#718096; font-size:18px;">
+      ⏳ Memuat Dashboard...
+    </div>`;
+    google.script.run.withSuccessHandler(tampilkanDashboard).getDashboardData();
+    google.script.run.withSuccessHandler(renderGrafik).getStatistikBulanan();
+    google.script.run.withSuccessHandler(tampilkanTransaksiTerbaru).getTransaksiTerbaru(5);
+  }
+
+  function tampilkanDashboard(data) {
+    var html = `
+  <div class="dashboard-grid dashboard-grid-utama">
+    <div class="dashboard-card card-produk-total">
+      <h4>Produk</h4>
+      <h2>${data.totalProduk || 0}</h2>
+    </div>
+    <div class="dashboard-card card-transaksi">
+      <h4>Transaksi</h4>
+      <h2>${data.transaksi}</h2>
+    </div>
+    <div class="dashboard-card card-stok-menipis">
+      <h4>Stok Menipis</h4>
+      <h2>${(data.stokMenipis && data.stokMenipis.length) || 0}</h2>
+    </div>
+    <div class="dashboard-card card-omset">
+      <h4>Total Penjualan</h4>
+      <h2>Rp ${Number(data.omzet).toLocaleString('id-ID')}</h2>
+    </div>
+  </div>
+
+  <div class="dashboard-grid dashboard-grid-sekunder">
+    <div class="dashboard-card card-laba">
+      <h4>Laba Hari Ini</h4>
+      <h2>Rp ${Number(data.laba).toLocaleString('id-ID')}</h2>
+    </div>
+    <div class="dashboard-card card-terlaris">
+      <h4>Produk Terlaris</h4>
+      <h2 style="font-size: 16px;">${data.produkTerlaris || '-'}</h2>
+      <small>Terjual ${data.qtyTerlaris || 0} pcs</small>
+    </div>
+    <div class="dashboard-card">
+      <h4>Stok Habis</h4>
+      <h2 style="color:#e53e3e;">${data.stokHabis || 0} Item</h2>
+    </div>
+    <div class="dashboard-card">
+      <h4>Estimasi Nilai Inventaris</h4>
+      <h2>Rp ${Number(data.nilaiStok || 0).toLocaleString('id-ID')}</h2>
+    </div>
+  </div>`;
+
+    document.getElementById("dashboard-data").innerHTML = html;
+
+    var alertBox = document.getElementById('dashboard-alert-stok');
+    if (alertBox) {
+      if (data.stokMenipis && data.stokMenipis.length > 0) {
+        alertBox.classList.remove('kosong');
+        var htmlAlert = '';
+        data.stokMenipis.forEach(function (item) {
+          htmlAlert += `<div class="alert-stok-item">${item.nama} - Sisa Stok: <strong>${item.stok}</strong></div>`;
+        });
+        alertBox.innerHTML = htmlAlert;
+      } else {
+        alertBox.classList.add('kosong');
+        alertBox.innerHTML = '<div class="alert-stok-kosong">Tidak ada stok menipis.</div>';
+      }
+    }
+  }
+
+  function tampilkanTransaksiTerbaru(data) {
+    var tbody = document.getElementById('tabel-transaksi-terbaru');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (!data || data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada transaksi.</td></tr>';
+      return;
+    }
+
+    data.forEach(function (item) {
+      var tanggalFormat = item[1] ? new Date(item[1]).toLocaleString('id-ID') : '-';
+      var metode = item[7] || 'Tunai';
+      var status = item[8] || 'Selesai';
+      var badgeStatus = status === 'Dibatalkan'
+        ? '<span class="badge-status badge-batal">Dibatalkan</span>'
+        : '<span class="badge-status badge-selesai">Selesai</span>';
+
+      tbody.innerHTML += `
+      <tr>
+        <td>${item[0] || '-'}</td>
+        <td><strong>${metode}</strong></td>
+        <td><strong>Rp ${Number(item[3] || 0).toLocaleString('id-ID')}</strong></td>
+        <td>${badgeStatus}</td>
+        <td>${tanggalFormat}</td>
+      </tr>`;
+    });
+  }
+
+  function renderGrafik(data) {
+    var ctxPenjualan = document.getElementById('grafikPenjualan');
+    if (!ctxPenjualan) return;
+
+    var labels = data.map(d => d.bulan);
+    var omset = data.map(d => d.omzet);
+    var laba = data.map(d => d.laba);
+
+    if (chartPenjualan) chartPenjualan.destroy();
+    chartPenjualan = new Chart(ctxPenjualan.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: 'Omset (Rp)', data: omset, borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.1)', fill: true, tension: 0.3 },
+          { label: 'Laba (Rp)', data: laba, borderColor: '#38a169', backgroundColor: 'rgba(56,161,105,0.1)', fill: true, tension: 0.3 }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+  }
+</script>
