@@ -8,7 +8,7 @@ Ringan, cepat, dan mobile-friendly — dibangun di atas Google Sheets sebagai da
 
 [![Demo](https://img.shields.io/badge/demo-lihat%20sekarang-blueviolet)](https://kasirpintar-bice.vercel.app/)
 [![Platform](https://img.shields.io/badge/backend-Google%20Apps%20Script-4285F4)](https://script.google.com/home/)
-[![Database](https://img.shields.io/badge/database-Google%20Sheets-0F9D58)](https://workspace.google.com/intl/id/products/sheets/)
+[![Database](https://img.shields.io/badge/database-Google%20Sheets-0F9D58)](https://docs.google.com/spreadsheets)
 [![Hosting](https://img.shields.io/badge/hosting-Vercel-000000)](https://vercel.com/)
 
 </div>
