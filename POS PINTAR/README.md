@@ -7,12 +7,30 @@
 Ringan, cepat, dan mobile-friendly — dibangun di atas Google Sheets sebagai database, tanpa biaya hosting.
 
 ![Status](https://img.shields.io/badge/status-aktif-brightgreen)
-![Platform](https://img.shields.io/badge/backend-Google%20Apps%20Script-4285F4)
-![Database](https://img.shields.io/badge/database-Google%20Sheets-0F9D58)
-![Hosting](https://img.shields.io/badge/hosting-Vercel-000000)
+[![Demo](https://img.shields.io/badge/demo-lihat%20sekarang-blueviolet)](https://kasirpintar-bice.vercel.app/)
+[![Platform](https://img.shields.io/badge/backend-Google%20Apps%20Script-4285F4)](https://www.google.com/script/start/)
+[![Database](https://img.shields.io/badge/database-Google%20Sheets-0F9D58)](https://www.google.com/sheets/about/)
+[![Hosting](https://img.shields.io/badge/hosting-Vercel-000000)](https://vercel.com/)
 ![Mobile](https://img.shields.io/badge/mobile--friendly-yes-orange)
 
 </div>
+
+---
+
+## 🔗 Live Demo
+
+Coba langsung aplikasinya tanpa perlu setup apapun:
+
+**🌐 [kasirpintar-bice.vercel.app](https://kasirpintar-bice.vercel.app/)**
+
+| Field | Nilai |
+|---|---|
+| Username | `demo` |
+| Password | `demo2026` |
+
+> ⚠️ Ini akun **demo publik** — data yang kamu masukkan bisa dilihat/diubah pengguna lain yang mencoba demo ini juga. Jangan gunakan data asli. Untuk pemakaian produksi, deploy versi sendiri mengikuti [langkah setup](#-cara-setup-dari-nol) di bawah dan ganti kredensial login.
+
+
 
 ---
 
