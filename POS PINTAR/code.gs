@@ -7,9 +7,8 @@
 // yang muncul di Log ke sini.
 // =========================================================
 var AKUN_LOGIN = {
-  "admin": { passwordHash: "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9", role: "admin" }, // admin123
   "kasir": { passwordHash: "f02b7c1e519e4fa436147f7e1399974f9510aa9c8e0cb8be29151eb540f9d214", role: "kasir" }, // kasir123
-  "demo": { passwordHash: "43c27b4e263fa191a6a7ec198cd4d5b47d17413c49d77dc533a01720707e3202", role: "admin" }  // demo2026 — akun khusus buat screenshot/demo, HAPUS SETELAH DIPAKAI
+  "demo": { passwordHash: "43c27b4e263fa191a6a7ec198cd4d5b47d17413c49d77dc533a01720707e3202", role: "admin" }  // demo2026
 };
 
 function hashPassword(teks) {
