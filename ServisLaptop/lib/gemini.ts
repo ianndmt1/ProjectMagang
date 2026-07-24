@@ -13,7 +13,7 @@ export function getSystemInstruction() {
     return fs.readFileSync(promptPath, "utf-8");
   } catch (error) {
     console.error("Error reading gemini-system-prompt.md:", error);
-    return "Kamu adalah teknisi AI BK Computer.";
+    return "Kamu adalah teknisi AI LaptopDoctor.AI.";
   }
 }
 
@@ -33,7 +33,7 @@ export const checkOrderStatusDeclaration: FunctionDeclaration = {
 };
 
 export const geminiModel = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash",
+  model: "gemini-3.5-flash",
   systemInstruction: getSystemInstruction(),
   tools: [
     {
@@ -41,7 +41,7 @@ export const geminiModel = genAI.getGenerativeModel({
     },
   ],
   generationConfig: {
-    maxOutputTokens: 350,
+    maxOutputTokens: 500,
     temperature: 0.7,
   },
 });
@@ -49,7 +49,7 @@ export const geminiModel = genAI.getGenerativeModel({
 export async function executeCheckOrderStatus(invoice_code: string) {
   try {
     const supabase = createServerSupabaseClient();
-    
+
     // Query without RLS since we use service_role
     const { data, error } = await supabase
       .from("service_orders")

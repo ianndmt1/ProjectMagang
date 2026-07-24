@@ -66,7 +66,12 @@ export async function POST(request: Request) {
     });
 
   } catch (error) {
-    console.error("Gemini API Error:", error);
+    const err = error as any;
+    console.error("Gemini API Error Details:", {
+      message: err?.message,
+      status: err?.status || err?.statusCode,
+      error,
+    });
     // Graceful fallback on API error/Rate Limit
     return NextResponse.json({
       reply: "Maaf, AI lagi sibuk. Coba beberapa saat lagi atau hubungi kami langsung lewat WhatsApp.",

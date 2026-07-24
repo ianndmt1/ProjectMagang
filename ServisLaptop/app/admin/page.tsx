@@ -90,7 +90,7 @@ export default function AdminDashboardPage() {
             {profileLoading ? "Halo, Admin" : `Halo, ${profile?.full_name || "Admin"} (${profile?.role || "Staff"})`}
           </h1>
           <p className="text-sm mt-0.5" style={{ color: "#64748B" }}>
-            Ringkasan aktivitas servis BK Computer hari ini
+            Ringkasan aktivitas servis LaptopDoctor.AI hari ini
           </p>
         </div>
         <Link

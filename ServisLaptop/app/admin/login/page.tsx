@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 
@@ -28,9 +28,25 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [sessionClearedMsg, setSessionClearedMsg] = useState(false);
 
   const searchParams = useSearchParams();
   const isInactive = searchParams.get("error") === "inactive";
+
+  useEffect(() => {
+    async function checkAndClearSession() {
+      const supabase = createBrowserSupabaseClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session) {
+        await supabase.auth.signOut();
+        setSessionClearedMsg(true);
+      }
+    }
+    checkAndClearSession();
+  }, []);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -71,16 +87,16 @@ function LoginForm() {
             <IconLogo size={48} />
           </div>
           <h1
-            className="text-xl font-bold tracking-tight"
+            className="text-2xl font-extrabold tracking-tight"
             style={{
               fontFamily: "var(--font-display)",
               color: "#0F172A",
             }}
           >
-            BK Computer
+            LaptopDoctor.AI
           </h1>
           <p className="text-xs mt-1" style={{ color: "#64748B" }}>
-            Pusat Service Laptop Solo
+            Pusat Service Laptop & PC
           </p>
         </div>
 
@@ -96,13 +112,13 @@ function LoginForm() {
           {/* Card header */}
           <div className="mb-6">
             <h2
-              className="text-base font-semibold"
+              className="text-center font-semibold"
               style={{ fontFamily: "var(--font-display)", color: "#0F172A" }}
             >
               Masuk ke Dashboard
             </h2>
-            <p className="text-xs mt-1" style={{ color: "#64748B" }}>
-              Khusus staff BK Computer
+            <p className="text-xs text-center mt-1" style={{ color: "#64748B" }}>
+              Khusus staff LaptopDoctor.AI
             </p>
           </div>
 
@@ -144,7 +160,7 @@ function LoginForm() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                placeholder="admin@bkcomputer.com"
+                placeholder="admin@laptopdoctor.ai"
                 className="w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-all"
                 style={{
                   background: "#F8FAFC",
@@ -229,7 +245,7 @@ function LoginForm() {
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 12a9 9 0 11-6.219-8.56" strokeLinecap="round"/>
+                    <path d="M21 12a9 9 0 11-6.219-8.56" strokeLinecap="round" />
                   </svg>
                   Memproses...
                 </span>
@@ -238,11 +254,47 @@ function LoginForm() {
               )}
             </button>
           </form>
+
+          {/* Demo account helper box */}
+          <div
+            className="mt-6 p-4 rounded-xl border text-xs"
+            style={{
+              background: "#F0FDF4",
+              borderColor: "#BBF7D0",
+              color: "#166534",
+            }}
+          >
+            <div className="flex items-center justify-between font-medium mb-2">
+              <span className="flex items-center gap-1.5 font-semibold text-emerald-900">
+                <span>🔑</span> Akses Demo Staff
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail("demo@laptopdoctor.ai");
+                  setPassword("demo123456");
+                }}
+                className="px-2.5 py-1 rounded-lg text-xs font-semibold text-white transition-all hover:brightness-110 active:scale-95 cursor-pointer"
+                style={{
+                  background: "linear-gradient(135deg, #059669 0%, #0D9488 100%)",
+                  boxShadow: "0 2px 8px rgba(13,148,136,0.25)",
+                }}
+              >
+                Isi otomatis
+              </button>
+            </div>
+            <div className="font-mono text-[11px] bg-white/80 px-2.5 py-1.5 rounded-lg border border-emerald-200 text-slate-700 select-all mb-2">
+              Coba demo: <strong className="text-slate-900 font-semibold font-sans">demo@laptopdoctor.ai</strong> / <strong className="text-slate-900 font-semibold font-sans">demo123456</strong>
+            </div>
+            <p className="text-[11px] text-emerald-700 leading-snug">
+              Akun demo bisa dipakai siapa saja yang mencoba, mohon tidak ubah data secara permanen
+            </p>
+          </div>
         </div>
 
         {/* Footer note */}
         <p className="text-center text-xs mt-6" style={{ color: "#94A3B8" }}>
-          Halaman ini hanya untuk staff BK Computer
+          Halaman ini hanya untuk staff LaptopDoctor.AI
         </p>
       </div>
     </div>

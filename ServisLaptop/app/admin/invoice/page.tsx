@@ -141,66 +141,115 @@ export default function InvoicePage() {
         {loading ? (
           <div className="text-center py-16 text-sm" style={{ color: "#94A3B8" }}>Memuat data...</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead>
-                <tr style={{ background: "#F8FAFC", borderBottom: "1px solid #E2E8F0" }}>
-                  {["Invoice", "Customer", "Kategori", "Status Servis", "Biaya Final", "Pembayaran", "Garansi", "Aksi"].map((h) => (
-                    <th key={h} className="px-4 py-3 text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: "#94A3B8" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((order, idx) => {
-                  const pCfg = PAYMENT_CFG[order.payment_status ?? "belum_bayar"];
-                  const sColor = STATUS_COLOR[order.status] ?? "#94A3B8";
-                  return (
-                    <tr key={order.id} style={{ borderBottom: "1px solid #F1F5F9", background: idx % 2 === 0 ? "white" : "#FAFAFA" }}>
-                      <td className="px-4 py-4">
-                        <span className="font-mono text-xs font-semibold" style={{ color: "#0F172A" }}>{order.invoice_code}</span>
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="text-sm font-medium" style={{ color: "#0F172A" }}>{order.customer_name}</div>
-                        <div className="text-xs mt-0.5" style={{ color: "#94A3B8" }}>{order.device_info}</div>
-                      </td>
-                      <td className="px-4 py-4 text-xs" style={{ color: "#64748B" }}>{order.service_categories?.name ?? "—"}</td>
-                      <td className="px-4 py-4">
-                        <span className="w-2 h-2 rounded-full inline-block mr-1.5" style={{ background: sColor }} />
-                        <span className="text-xs" style={{ color: sColor }}>{order.status.replace("_", " ")}</span>
-                      </td>
-                      <td className="px-4 py-4 text-sm font-semibold" style={{ color: order.final_price ? "#0F172A" : "#CBD5E1" }}>
-                        {order.final_price ? fmtCurrency(order.final_price) : "—"}
-                      </td>
-                      <td className="px-4 py-4">
-                        <span
-                          className="text-xs font-semibold px-2.5 py-1 rounded-full"
-                          style={{ background: pCfg.bg, color: pCfg.color, border: `1px solid ${pCfg.border}` }}
-                        >
-                          {pCfg.label}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4">
-                        {order.warranty_days && order.warranty_days > 0 ? (
-                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: "rgba(34,197,94,0.10)", color: "#16A34A" }}>
-                            🛡️ {order.warranty_days}h
+          <>
+            {/* Desktop Table (>=768px) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead>
+                  <tr style={{ background: "#F8FAFC", borderBottom: "1px solid #E2E8F0" }}>
+                    {["Invoice", "Customer", "Kategori", "Status Servis", "Biaya Final", "Pembayaran", "Garansi", "Aksi"].map((h) => (
+                      <th key={h} className="px-4 py-3 text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: "#94A3B8" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((order, idx) => {
+                    const pCfg = PAYMENT_CFG[order.payment_status ?? "belum_bayar"];
+                    const sColor = STATUS_COLOR[order.status] ?? "#94A3B8";
+                    return (
+                      <tr key={order.id} style={{ borderBottom: "1px solid #F1F5F9", background: idx % 2 === 0 ? "white" : "#FAFAFA" }}>
+                        <td className="px-4 py-4">
+                          <span className="font-mono text-xs font-semibold" style={{ color: "#0F172A" }}>{order.invoice_code}</span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="text-sm font-medium" style={{ color: "#0F172A" }}>{order.customer_name}</div>
+                          <div className="text-xs mt-0.5" style={{ color: "#94A3B8" }}>{order.device_info}</div>
+                        </td>
+                        <td className="px-4 py-4 text-xs" style={{ color: "#64748B" }}>{order.service_categories?.name ?? "—"}</td>
+                        <td className="px-4 py-4">
+                          <span className="w-2 h-2 rounded-full inline-block mr-1.5" style={{ background: sColor }} />
+                          <span className="text-xs" style={{ color: sColor }}>{order.status.replace("_", " ")}</span>
+                        </td>
+                        <td className="px-4 py-4 text-sm font-semibold" style={{ color: order.final_price ? "#0F172A" : "#CBD5E1" }}>
+                          {order.final_price ? fmtCurrency(order.final_price) : "—"}
+                        </td>
+                        <td className="px-4 py-4">
+                          <span
+                            className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                            style={{ background: pCfg.bg, color: pCfg.color, border: `1px solid ${pCfg.border}` }}
+                          >
+                            {pCfg.label}
                           </span>
-                        ) : <span className="text-xs" style={{ color: "#CBD5E1" }}>—</span>}
-                      </td>
-                      <td className="px-4 py-4">
-                        <button
-                          onClick={() => openInvoice(order)}
-                          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border hover:bg-slate-50 transition-colors"
-                          style={{ borderColor: "#E2E8F0", color: "#475569" }}
-                        >
-                          Invoice
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        </td>
+                        <td className="px-4 py-4">
+                          {order.warranty_days && order.warranty_days > 0 ? (
+                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: "rgba(34,197,94,0.10)", color: "#16A34A" }}>
+                              🛡️ {order.warranty_days}h
+                            </span>
+                          ) : <span className="text-xs" style={{ color: "#CBD5E1" }}>—</span>}
+                        </td>
+                        <td className="px-4 py-4">
+                          <button
+                            onClick={() => openInvoice(order)}
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 min-h-[36px] rounded-lg border hover:bg-slate-50 transition-colors"
+                            style={{ borderColor: "#E2E8F0", color: "#475569" }}
+                          >
+                            Invoice
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card List (<768px) */}
+            <div className="md:hidden divide-y" style={{ borderColor: "#F1F5F9" }}>
+              {filtered.map((order) => {
+                const pCfg = PAYMENT_CFG[order.payment_status ?? "belum_bayar"];
+                const sColor = STATUS_COLOR[order.status] ?? "#94A3B8";
+                return (
+                  <div key={order.id} className="p-4 space-y-3 bg-white">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-xs font-bold" style={{ color: "#0F172A" }}>{order.invoice_code}</span>
+                      <span
+                        className="text-[10px] font-semibold px-2.5 py-1 rounded-full"
+                        style={{ background: pCfg.bg, color: pCfg.color, border: `1px solid ${pCfg.border}` }}
+                      >
+                        {pCfg.label}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="text-sm font-semibold" style={{ color: "#0F172A" }}>{order.customer_name} ({order.customer_phone})</div>
+                      <div className="text-xs text-slate-500">{order.service_categories?.name ?? "—"} · {order.device_info}</div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1 text-xs">
+                      <div>
+                        <span className="w-2 h-2 rounded-full inline-block mr-1.5" style={{ background: sColor }} />
+                        <span className="capitalize" style={{ color: sColor }}>{order.status.replace("_", " ")}</span>
+                      </div>
+                      <div className="font-semibold text-slate-800">
+                        {order.final_price ? fmtCurrency(order.final_price) : "—"}
+                      </div>
+                    </div>
+
+                    <div className="pt-2">
+                      <button
+                        onClick={() => openInvoice(order)}
+                        className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-4 py-2.5 min-h-[44px] rounded-xl border hover:bg-slate-50 transition-colors w-full"
+                        style={{ borderColor: "#E2E8F0", color: "#475569" }}
+                      >
+                        Lihat &amp; Print Invoice →
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
 
@@ -233,9 +282,9 @@ export default function InvoicePage() {
               {/* BK Header */}
               <div className="flex items-start justify-between pb-4 border-b" style={{ borderColor: "#E2E8F0" }}>
                 <div>
-                  <div className="text-lg font-bold" style={{ fontFamily: "var(--font-display)", color: "#0F172A" }}>BK Computer</div>
-                  <div className="text-xs mt-0.5" style={{ color: "#64748B" }}>Jl. K.H Samanhudi No.138, Laweyan, Solo</div>
-                  <div className="text-xs" style={{ color: "#64748B" }}>WA: +62 857-2542-0666</div>
+                  <div className="text-lg font-bold" style={{ fontFamily: "var(--font-display)", color: "#0F172A" }}>LaptopDoctor.AI</div>
+                  <div className="text-xs mt-0.5" style={{ color: "#64748B" }}>Jl. Contoh No. 123, Kota Anda</div>
+                  <div className="text-xs" style={{ color: "#64748B" }}>WA: +62 812-3456-789</div>
                 </div>
                 <div className="text-right">
                   <div className="text-xs" style={{ color: "#94A3B8" }}>Tanggal</div>

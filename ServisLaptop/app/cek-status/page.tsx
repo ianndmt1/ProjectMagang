@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { STORE_INFO } from "@/lib/store-info";
+import { useState, useEffect } from "react";
+import { DEFAULT_APP_SETTINGS, AppSettings } from "@/lib/settings-config";
+import SiteHeader from "@/components/layout/SiteHeader";
+import SiteFooter from "@/components/layout/SiteFooter";
 
 /* ─── Status config ─── */
 interface TrackedOrder {
@@ -76,24 +78,7 @@ const FLOW_STEPS = [
   { key: "sudah_diambil", label: "Diambil" },
 ];
 
-/* ─── SVG Logo (same as landing page) ─── */
-function IconLogo({ size = 32 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="logo-grad-cek" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#2DD4BF" />
-          <stop offset="100%" stopColor="#3B82F6" />
-        </linearGradient>
-      </defs>
-      <rect width="36" height="36" rx="8" fill="url(#logo-grad-cek)" />
-      <path d="M9 10h7a4 4 0 010 8H9V10z" fill="white" />
-      <path d="M9 18h8a4 4 0 010 8H9V18z" fill="white" opacity="0.7" />
-      <rect x="20" y="12" width="2" height="12" rx="1" fill="white" opacity="0.5" />
-      <rect x="24" y="10" width="2" height="16" rx="1" fill="white" />
-    </svg>
-  );
-}
+/* ─── SVG Logo (moved to layout components) ─── */
 
 /* ─── Helpers ─── */
 function fmt(dateStr: string) {
@@ -114,9 +99,19 @@ function fmtCurrency(n: number) {
 
 /* ─── Main Component ─── */
 export default function TrackStatusPage() {
+  const [settings, setSettings] = useState<AppSettings>(DEFAULT_APP_SETTINGS);
   const [invoiceInput, setInvoiceInput] = useState("");
   const [waInput, setWaInput] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((res) => {
+        if (res?.data) setSettings(res.data);
+      })
+      .catch((err) => console.warn("Failed to fetch settings:", err));
+  }, []);
   const [error, setError] = useState<string | null>(null);
   const [order, setOrder] = useState<TrackedOrder | null>(null);
 
@@ -180,37 +175,7 @@ export default function TrackStatusPage() {
     <div className="min-h-screen flex flex-col" style={{ background: "#0F172A", color: "#F1F5F9" }}>
 
       {/* ─── HEADER ─── */}
-      <header
-        className="sticky top-0 z-50"
-        style={{
-          background: "rgba(15,23,42,0.90)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-          borderBottom: "1px solid rgba(255,255,255,0.07)",
-        }}
-      >
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-3 no-underline">
-            <IconLogo size={32} />
-            <div className="leading-tight">
-              <div className="font-bold text-sm text-white tracking-tight" style={{ fontFamily: "var(--font-display)" }}>
-                BK Computer
-              </div>
-              <div className="text-[10px] text-slate-400 tracking-wider uppercase">
-                Pusat Service Laptop Solo
-              </div>
-            </div>
-          </a>
-          <nav className="flex items-center gap-1">
-            <a href="/" className="px-3 py-2 text-sm text-slate-400 hover:text-white rounded-lg transition-colors hover:bg-white/5">
-              Beranda
-            </a>
-            <a href="/sparepart" className="px-3 py-2 text-sm text-slate-400 hover:text-white rounded-lg transition-colors hover:bg-white/5">
-              Sparepart
-            </a>
-          </nav>
-        </div>
-      </header>
+      <SiteHeader />
 
       {/* ─── MAIN ─── */}
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-14">
@@ -245,14 +210,14 @@ export default function TrackStatusPage() {
         {/* ─── FORM ─── */}
         <form
           onSubmit={handleTrack}
-          className="rounded-2xl border p-6 mb-8"
+          className="rounded-2xl border p-4 sm:p-6 mb-8"
           style={{
             background: "rgba(255,255,255,0.04)",
             borderColor: "rgba(255,255,255,0.09)",
           }}
         >
           {/* Inputs row — sejajar di desktop, stack di mobile */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-4">
+          <div className="flex flex-col sm:flex-row gap-4 mb-4">
             {/* Invoice input */}
             <div className="flex-1">
               <label className="block text-xs font-medium mb-2" style={{ color: "#94A3B8" }}>
@@ -264,7 +229,7 @@ export default function TrackStatusPage() {
                 onChange={(e) => setInvoiceInput(e.target.value)}
                 placeholder="Nomor invoice, contoh SRV-20260701-0001"
                 required
-                className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all"
+                className="w-full px-4 py-3 min-h-[44px] rounded-xl text-sm outline-none transition-all"
                 style={{
                   background: "rgba(255,255,255,0.06)",
                   border: "1px solid rgba(255,255,255,0.10)",
@@ -292,7 +257,7 @@ export default function TrackStatusPage() {
                 value={waInput}
                 onChange={(e) => setWaInput(e.target.value)}
                 placeholder="Nomor WhatsApp (opsional, untuk verifikasi)"
-                className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all"
+                className="w-full px-4 py-3 min-h-[44px] rounded-xl text-sm outline-none transition-all"
                 style={{
                   background: "rgba(255,255,255,0.06)",
                   border: "1px solid rgba(255,255,255,0.10)",
@@ -311,14 +276,14 @@ export default function TrackStatusPage() {
           </div>
 
           {/* Button row */}
-          <div className="flex flex-col sm:flex-row sm:justify-end gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             {/* Hint text kiri */}
-            <p className="text-xs sm:flex-1" style={{ color: "#64748B" }}>
+            <p className="text-xs sm:flex-1 leading-relaxed" style={{ color: "#64748B" }}>
               Tips: ketik{" "}
               <button
                 type="button"
-                className="font-mono font-semibold hover:underline"
-                style={{ color: "#2DD4BF", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                className="font-mono font-semibold hover:underline inline-flex items-center min-h-[32px] px-1"
+                style={{ color: "#2DD4BF", background: "none", border: "none", cursor: "pointer" }}
                 onClick={() => setInvoiceInput("SRV-DEMO")}
               >
                 SRV-DEMO
@@ -330,7 +295,7 @@ export default function TrackStatusPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-semibold text-sm text-white transition-all hover:brightness-110 active:scale-[0.97] disabled:opacity-60"
+              className="w-full sm:w-auto min-h-[44px] flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-semibold text-sm text-white transition-all hover:brightness-110 active:scale-[0.97] disabled:opacity-60 flex-shrink-0"
               style={{
                 background: "linear-gradient(135deg, #14B8A6 0%, #3B82F6 100%)",
                 boxShadow: "0 4px 16px rgba(20,184,166,0.35)",
@@ -349,7 +314,7 @@ export default function TrackStatusPage() {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                     <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                   </svg>
-                  Cek
+                  Cek Status
                 </>
               )}
             </button>
@@ -599,7 +564,7 @@ export default function TrackStatusPage() {
                 Ada pertanyaan? Hubungi kami langsung
               </p>
               <a
-                href={`https://wa.me/${STORE_INFO.contact.whatsapp}?text=Halo%20BK%20Computer%2C%20saya%20ingin%20menanyakan%20status%20servis%20invoice%20${order.invoice_code}`}
+                href={`https://wa.me/${settings.shop_whatsapp}?text=Halo%20${encodeURIComponent(settings.shop_name)}%2C%20saya%20ingin%20menanyakan%20status%20servis%20invoice%20${order.invoice_code}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm text-white transition-all hover:brightness-110"
@@ -616,12 +581,7 @@ export default function TrackStatusPage() {
       </main>
 
       {/* ─── FOOTER ─── */}
-      <footer
-        className="py-8 text-center text-xs border-t"
-        style={{ background: "#080F1E", borderColor: "rgba(255,255,255,0.06)", color: "#475569" }}
-      >
-        © {new Date().getFullYear()} BK Computer — Pusat Service Laptop Solo
-      </footer>
+      <SiteFooter settings={settings} />
     </div>
   );
 }

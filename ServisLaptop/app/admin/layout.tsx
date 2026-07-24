@@ -181,7 +181,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <IconLogo size={28} />
           <div>
             <div className="text-sm font-bold" style={{ fontFamily: "var(--font-display)", color: "#0F172A" }}>
-              BK Computer
+              LaptopDoctor.AI
             </div>
             <div className="text-[10px]" style={{ color: "#94A3B8" }}>Admin Panel</div>
           </div>
@@ -282,7 +282,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <button
             onClick={handleLogout}
             title="Keluar"
-            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-red-50"
+            aria-label="Keluar / Logout"
+            className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors hover:bg-red-50 min-h-[44px] min-w-[44px]"
             style={{ color: "#94A3B8" }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLButtonElement).style.color = "#EF4444";
@@ -291,7 +292,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               (e.currentTarget as HTMLButtonElement).style.color = "#94A3B8";
             }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
               <polyline points="16 17 21 12 16 7" />
               <line x1="21" y1="12" x2="9" y2="12" />
@@ -319,14 +320,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-14 border-b"
           style={{ background: "white", borderColor: "#E2E8F0" }}
         >
-          <Link href="/admin" className="flex items-center gap-2">
+          <Link href="/admin" className="flex items-center gap-2 min-h-[44px]">
             <IconLogo size={24} />
             <span className="text-sm font-bold" style={{ fontFamily: "var(--font-display)", color: "#0F172A" }}>BK Admin</span>
           </Link>
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-2 rounded-lg"
+            className="p-2 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center"
             style={{ color: "#64748B" }}
+            aria-label="Toggle navigation menu"
           >
             {mobileOpen ? (
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

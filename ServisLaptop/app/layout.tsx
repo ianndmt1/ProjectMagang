@@ -22,8 +22,8 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BK Computer - Pusat Service Laptop Solo",
-  description: "Service laptop, komputer & sparepart terpercaya, cepat, dan bergaransi di Solo",
+  title: "LaptopDoctor.AI - Pusat Service Laptop & PC",
+  description: "Service laptop, komputer & sparepart terpercaya, cepat, dan bergaransi",
 };
 
 export default function RootLayout({

@@ -184,83 +184,131 @@ export default function TiketServicePage() {
         ) : filtered.length === 0 ? (
           <div className="text-center py-16 text-sm" style={{ color: "#94A3B8" }}>Tidak ada tiket yang cocok dengan filter.</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead>
-                <tr style={{ background: "#F8FAFC", borderBottom: "1px solid #E2E8F0" }}>
-                  {["Invoice", "Customer", "Kategori & Device", "Tipe", "Status", "Garansi", "Biaya Final", "Aksi"].map((h) => (
-                    <th key={h} className="px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "#94A3B8" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((order, idx) => {
-                  const cfg = STATUS_CFG[order.status];
-                  return (
-                    <tr
-                      key={order.id}
-                      className="transition-colors"
-                      style={{ borderBottom: "1px solid #F1F5F9", background: idx % 2 === 0 ? "white" : "#FAFAFA" }}
-                    >
-                      <td className="px-4 py-4">
-                        <span className="font-mono text-xs font-semibold" style={{ color: "#0F172A" }}>{order.invoice_code}</span>
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="text-sm font-medium" style={{ color: "#0F172A" }}>{order.customer_name}</div>
-                        <div className="text-xs mt-0.5" style={{ color: "#94A3B8" }}>{order.customer_phone}</div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="text-sm font-medium" style={{ color: "#0F172A" }}>{order.service_categories?.name ?? "Jasa Umum"}</div>
-                        <div className="text-xs mt-0.5 max-w-48 truncate" style={{ color: "#94A3B8" }}>{order.device_info}</div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <span
-                          className="text-xs font-medium px-2.5 py-1 rounded-full"
-                          style={order.service_type === "homeservice"
-                            ? { background: "rgba(245,158,11,0.12)", color: "#D97706" }
-                            : { background: "#F1F5F9", color: "#475569" }}
-                        >
-                          {order.service_type === "homeservice" ? "🏠 Homeservice" : "🏬 Toko"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4">
-                        <span
-                          className="text-xs font-semibold px-2.5 py-1 rounded-full"
-                          style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}` }}
-                        >
-                          {cfg.label}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4">
-                        {order.warranty_days && order.warranty_days > 0 ? (
+          <>
+            {/* Desktop Table (>=768px) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead>
+                  <tr style={{ background: "#F8FAFC", borderBottom: "1px solid #E2E8F0" }}>
+                    {["Invoice", "Customer", "Kategori & Device", "Tipe", "Status", "Garansi", "Biaya Final", "Aksi"].map((h) => (
+                      <th key={h} className="px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "#94A3B8" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((order, idx) => {
+                    const cfg = STATUS_CFG[order.status];
+                    return (
+                      <tr
+                        key={order.id}
+                        className="transition-colors"
+                        style={{ borderBottom: "1px solid #F1F5F9", background: idx % 2 === 0 ? "white" : "#FAFAFA" }}
+                      >
+                        <td className="px-4 py-4">
+                          <span className="font-mono text-xs font-semibold" style={{ color: "#0F172A" }}>{order.invoice_code}</span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="text-sm font-medium" style={{ color: "#0F172A" }}>{order.customer_name}</div>
+                          <div className="text-xs mt-0.5" style={{ color: "#94A3B8" }}>{order.customer_phone}</div>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="text-sm font-medium" style={{ color: "#0F172A" }}>{order.service_categories?.name ?? "Jasa Umum"}</div>
+                          <div className="text-xs mt-0.5 max-w-48 truncate" style={{ color: "#94A3B8" }}>{order.device_info}</div>
+                        </td>
+                        <td className="px-4 py-4">
                           <span
-                            className="text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 w-fit"
-                            style={{ background: "rgba(34,197,94,0.10)", color: "#16A34A", border: "1px solid rgba(34,197,94,0.25)" }}
+                            className="text-xs font-medium px-2.5 py-1 rounded-full"
+                            style={order.service_type === "homeservice"
+                              ? { background: "rgba(245,158,11,0.12)", color: "#D97706" }
+                              : { background: "#F1F5F9", color: "#475569" }}
                           >
-                            🛡️ {order.warranty_days}h
+                            {order.service_type === "homeservice" ? "🏠 Homeservice" : "🏬 Toko"}
                           </span>
-                        ) : (
-                          <span className="text-xs" style={{ color: "#CBD5E1" }}>—</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 text-sm font-semibold" style={{ color: order.final_price ? "#0F172A" : "#CBD5E1" }}>
+                        </td>
+                        <td className="px-4 py-4">
+                          <span
+                            className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                            style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}` }}
+                          >
+                            {cfg.label}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4">
+                          {order.warranty_days && order.warranty_days > 0 ? (
+                            <span
+                              className="text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 w-fit"
+                              style={{ background: "rgba(34,197,94,0.10)", color: "#16A34A", border: "1px solid rgba(34,197,94,0.25)" }}
+                            >
+                              🛡️ {order.warranty_days}h
+                            </span>
+                          ) : (
+                            <span className="text-xs" style={{ color: "#CBD5E1" }}>—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-4 text-sm font-semibold" style={{ color: order.final_price ? "#0F172A" : "#CBD5E1" }}>
+                          {order.final_price ? fmtCurrency(order.final_price) : "—"}
+                        </td>
+                        <td className="px-4 py-4">
+                          <Link
+                            href={`/admin/orders/${order.id}`}
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 min-h-[36px] rounded-lg border transition-colors hover:bg-slate-50"
+                            style={{ borderColor: "#E2E8F0", color: "#475569" }}
+                          >
+                            Kelola →
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card List (<768px) */}
+            <div className="md:hidden divide-y" style={{ borderColor: "#F1F5F9" }}>
+              {filtered.map((order) => {
+                const cfg = STATUS_CFG[order.status];
+                return (
+                  <div key={order.id} className="p-4 space-y-3 bg-white">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-xs font-bold" style={{ color: "#0F172A" }}>{order.invoice_code}</span>
+                      <span
+                        className="text-[10px] font-semibold px-2.5 py-1 rounded-full"
+                        style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}` }}
+                      >
+                        {cfg.label}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="text-sm font-semibold" style={{ color: "#0F172A" }}>{order.customer_name} ({order.customer_phone})</div>
+                      <div className="text-xs text-slate-500">{order.service_categories?.name ?? "Jasa Umum"} · {order.device_info}</div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1 text-xs">
+                      <div>
+                        <span className="text-slate-400">Tipe: </span>
+                        <span className="font-medium" style={{ color: "#374151" }}>{order.service_type === "homeservice" ? "🏠 Homeservice" : "🏬 Toko"}</span>
+                      </div>
+                      <div className="font-semibold text-slate-800">
                         {order.final_price ? fmtCurrency(order.final_price) : "—"}
-                      </td>
-                      <td className="px-4 py-4">
-                        <Link
-                          href={`/admin/orders/${order.id}`}
-                          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors hover:bg-slate-50"
-                          style={{ borderColor: "#E2E8F0", color: "#475569" }}
-                        >
-                          Kelola →
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-2">
+                      <Link
+                        href={`/admin/orders/${order.id}`}
+                        className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-4 py-2.5 min-h-[44px] rounded-xl border transition-colors hover:bg-slate-50 w-full"
+                        style={{ borderColor: "#E2E8F0", color: "#475569" }}
+                      >
+                        Kelola Tiket →
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
 

@@ -14,6 +14,11 @@ export async function proxy(request: NextRequest) {
   // supabaseResponse harus selalu dikembalikan agar cookie refresh session berjalan
   let supabaseResponse = NextResponse.next({ request });
 
+  function withNoCache(response: NextResponse) {
+    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+    return response;
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -48,7 +53,7 @@ export async function proxy(request: NextRequest) {
   if (!user && !isLoginPage) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/admin/login";
-    return NextResponse.redirect(redirectUrl);
+    return withNoCache(NextResponse.redirect(redirectUrl));
   }
 
   // Sudah login, periksa profil
@@ -61,19 +66,12 @@ export async function proxy(request: NextRequest) {
         const redirectUrl = request.nextUrl.clone();
         redirectUrl.pathname = "/admin/login";
         redirectUrl.searchParams.set("error", "inactive");
-        return NextResponse.redirect(redirectUrl);
-      }
-    } else {
-      // Jika aktif dan mengakses halaman login, redirect ke dashboard
-      if (isLoginPage) {
-        const redirectUrl = request.nextUrl.clone();
-        redirectUrl.pathname = "/admin";
-        return NextResponse.redirect(redirectUrl);
+        return withNoCache(NextResponse.redirect(redirectUrl));
       }
     }
   }
 
-  return supabaseResponse;
+  return withNoCache(supabaseResponse);
 }
 
 export const config = {

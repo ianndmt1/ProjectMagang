@@ -1,7 +1,32 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { STORE_INFO } from "@/lib/store-info";
+import { DEFAULT_APP_SETTINGS, AppSettings } from "@/lib/settings-config";
+import SiteHeader from "@/components/layout/SiteHeader";
+import SiteFooter from "@/components/layout/SiteFooter";
+
+const DEMO_TESTIMONIALS = [
+  {
+    title: "Servis Kilat & Bergaransi",
+    summary: "Laptop mati total langsung ditangani dengan cepat. Penjelasannya transparan dan ada garansi servisnya.",
+    author: "Andi P.",
+  },
+  {
+    title: "Pelayanan Ramah & Sangat Membantu",
+    summary: "Teknisi sangat sabar menjawab pertanyaan teknis secara sederhana. Sangat direkomendasikan untuk orang awam.",
+    author: "Sarah W.",
+  },
+  {
+    title: "Upgrade SSD & RAM Langsung Wus",
+    summary: "Laptop tua jadi cepat kembali setelah diupgrade RAM dan SSD. Pengerjaan rapi dan tepat waktu.",
+    author: "Rian K.",
+  },
+  {
+    title: "Harga Terjangkau & Transparan",
+    summary: "Estimasi biaya diinformasikan di awal sebelum perbaikan. Tidak ada biaya tersembunyi, sangat memuaskan.",
+    author: "Dewi A.",
+  },
+];
 
 /* ─────────────────────────────────────────────
    SVG Icons
@@ -102,7 +127,7 @@ function IconPhone() {
 ───────────────────────────────────────────── */
 function LaptopIllustration() {
   return (
-    <div className="relative w-full max-w-[480px] mx-auto select-none">
+    <div className="relative w-full max-w-[480px] mx-auto select-none px-2 sm:px-0">
       {/* Glow background */}
       <div
         className="absolute inset-0 rounded-full blur-3xl opacity-20 pointer-events-none"
@@ -110,7 +135,7 @@ function LaptopIllustration() {
       />
 
       {/* Main laptop SVG */}
-      <svg viewBox="0 0 480 340" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full relative z-10">
+      <svg viewBox="0 0 480 340" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full relative z-10 h-auto">
         <defs>
           <linearGradient id="screen-grad" x1="0" y1="0" x2="480" y2="280" gradientUnits="userSpaceOnUse">
             <stop offset="0%" stopColor="#1E293B" />
@@ -156,8 +181,8 @@ function LaptopIllustration() {
           <animate attributeName="opacity" values="0.9;0;0.9" dur="1.2s" repeatCount="indefinite" />
         </rect>
 
-        {/* BK logo on screen */}
-        <text x="340" y="60" fontFamily="monospace" fontSize="11" fill="#14B8A6" opacity="0.7">BK</text>
+        {/* AI logo on screen */}
+        <text x="340" y="60" fontFamily="monospace" fontSize="11" fill="#14B8A6" opacity="0.7">AI</text>
 
         {/* Webcam dot */}
         <circle cx="240" cy="27" r="3" fill="#475569" />
@@ -177,12 +202,11 @@ function LaptopIllustration() {
 
       {/* Floating card 1 — Shield (Garansi) */}
       <div
-        className="absolute top-4 -right-4 animate-float"
-        style={{ zIndex: 20 }}
+        className="absolute top-2 right-1 sm:-right-4 animate-float z-20"
       >
-        <div className="glass-card rounded-xl px-4 py-3 flex items-center gap-3 shadow-2xl" style={{ minWidth: 150 }}>
-          <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, #14B8A6, #3B82F6)" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
+        <div className="glass-card rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2.5 sm:gap-3 shadow-2xl" style={{ minWidth: 130 }}>
+          <div className="w-8 sm:w-9 h-8 sm:h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #14B8A6, #3B82F6)" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               <polyline points="9 12 11 14 15 10" />
             </svg>
@@ -196,12 +220,11 @@ function LaptopIllustration() {
 
       {/* Floating card 2 — Speed */}
       <div
-        className="absolute bottom-16 -left-6 animate-float-delayed"
-        style={{ zIndex: 20 }}
+        className="absolute bottom-12 left-1 sm:-left-4 animate-float-delayed z-20"
       >
-        <div className="glass-card rounded-xl px-4 py-3 flex items-center gap-3 shadow-2xl" style={{ minWidth: 150 }}>
-          <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, #F59E0B, #EF4444)" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
+        <div className="glass-card rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2.5 sm:gap-3 shadow-2xl" style={{ minWidth: 130 }}>
+          <div className="w-8 sm:w-9 h-8 sm:h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #F59E0B, #EF4444)" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
               <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
             </svg>
           </div>
@@ -214,16 +237,16 @@ function LaptopIllustration() {
 
       {/* Rating badge */}
       <div
-        className="absolute top-24 -left-2 animate-float z-20"
+        className="absolute top-20 left-1 sm:-left-2 animate-float z-20"
         style={{ animationDelay: "0.8s" }}
       >
         <div
-          className="rounded-full px-3 py-2 flex items-center gap-1.5 shadow-xl"
+          className="rounded-full px-3 py-1.5 sm:py-2 flex items-center gap-1.5 shadow-xl"
           style={{ background: "linear-gradient(135deg, #14B8A6, #3B82F6)" }}
         >
-          <span className="text-yellow-300 text-sm">★</span>
-          <span className="text-white font-bold text-sm">4.8</span>
-          <span className="text-white/70 text-xs">Google</span>
+          <span className="text-yellow-300 text-xs sm:text-sm">★</span>
+          <span className="text-white font-bold text-xs sm:text-sm">4.8</span>
+          <span className="text-white/70 text-[10px] sm:text-xs">Google</span>
         </div>
       </div>
     </div>
@@ -343,17 +366,23 @@ const SERVICE_CATEGORIES = [
 ];
 
 /* ─────────────────────────────────────────────
-    return `📍 Lokasi BK Computer:\n${STORE_INFO.address.full}\n\nBuka di Google Maps untuk petunjuk arah.`;
-  }
-  return "Pesan diterima! Untuk diagnosis yang akurat, ceritakan lebih detail:\n1. Merek & tipe laptop/PC\n2. Gejala yang dialami (kapan mulai, apakah sering atau selalu)\n3. Pernah jatuh atau kena air?\n\nAtau langsung hubungi admin kami via WhatsApp untuk konsultasi teknis! 😊";
-}
-
-/* ─────────────────────────────────────────────
    Main Component
 ───────────────────────────────────────────── */
 export default function Home() {
+  const [settings, setSettings] = useState<AppSettings>(DEFAULT_APP_SETTINGS);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((res) => {
+        if (res?.data) {
+          setSettings(res.data);
+        }
+      })
+      .catch((err) => console.warn("Failed to fetch app settings:", err));
+  }, []);
   const [isScrolled, setIsScrolled] = useState(false);
   const [chatMessages, setChatMessages] = useState<Array<{ sender: "user" | "ai"; text: string; showWhatsappButton?: boolean }>>([
     {
@@ -373,14 +402,17 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatMessages, isTyping]);
+    if (isChatOpen) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  }, [isChatOpen, chatMessages, isTyping]);
 
   const handleSendMessage = async (text: string) => {
     if (!text.trim()) return;
     const userMsg = { sender: "user" as const, text: text.trim() };
     
-    // Prepare history payload for API (map current state to proper roles)
     const history = chatMessages.map(msg => ({
       role: msg.sender === "user" ? "user" : "model",
       text: msg.text
@@ -419,120 +451,19 @@ export default function Home() {
     setIsMobileMenuOpen(false);
   };
 
-  const navLinks = [
-    { label: "Beranda", href: "#beranda" },
-    { label: "Layanan", href: "#layanan" },
-    { label: "Cek Service", href: "/cek-status" },
-    { label: "Sparepart", href: "/sparepart" },
-    { label: "Cara Service", href: "#cara-service" },
-    { label: "Kontak", href: "#kontak" },
-  ];
-
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "#0F172A", color: "#F1F5F9" }}>
       {/* ─── HEADER ─── */}
-      <header
-        id="beranda"
-        className="sticky top-0 z-50 transition-all duration-300"
-        style={{
-          background: isScrolled
-            ? "rgba(15,23,42,0.95)"
-            : "rgba(15,23,42,0.80)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-          borderBottom: isScrolled ? "1px solid rgba(255,255,255,0.08)" : "1px solid transparent",
-        }}
-      >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          {/* Logo */}
-          <a href="#beranda" className="flex items-center gap-3 no-underline flex-shrink-0">
-            <IconLogo size={36} />
-            <div className="leading-tight">
-              <div className="font-bold text-base text-white tracking-tight" style={{ fontFamily: "var(--font-display)" }}>
-                BK Computer
-              </div>
-              <div className="text-[10px] text-slate-400 tracking-wider uppercase">
-                Pusat Service Laptop Solo
-              </div>
-            </div>
-          </a>
-
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                className="px-3 py-2 text-sm text-slate-300 hover:text-white rounded-lg transition-colors hover:bg-white/5"
-                style={{ fontFamily: "var(--font-sans)" }}
-              >
-                {link.label}
-              </a>
-            ))}
-            <a
-              href="/admin/login"
-              className="ml-2 px-4 py-2 text-sm font-medium rounded-lg border transition-all hover:bg-white/5"
-              style={{
-                borderColor: "rgba(45,212,191,0.5)",
-                color: "#2DD4BF",
-                fontFamily: "var(--font-sans)",
-              }}
-            >
-              Login
-            </a>
-          </nav>
-
-          {/* Mobile hamburger */}
-          <button
-            className="md:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {isMobileMenuOpen ? <IconX /> : <IconMenu />}
-          </button>
-        </div>
-
-        {/* Mobile menu */}
-        {isMobileMenuOpen && (
-          <div
-            className="md:hidden animate-fade-in"
-            style={{
-              background: "rgba(15,23,42,0.98)",
-              borderTop: "1px solid rgba(255,255,255,0.06)",
-            }}
-          >
-            <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col gap-1">
-              {navLinks.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  className="px-4 py-3 text-sm text-slate-300 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {link.label}
-                </a>
-              ))}
-              <a
-                href="/admin/login"
-                className="px-4 py-3 text-sm font-medium rounded-lg border mt-2 text-center transition-all hover:bg-white/5"
-                style={{ borderColor: "rgba(45,212,191,0.5)", color: "#2DD4BF" }}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Login Admin
-              </a>
-            </div>
-          </div>
-        )}
-      </header>
+      <SiteHeader />
 
       {/* ─── HERO ─── */}
       <section
-        className="relative overflow-hidden pt-16 pb-24"
+        className="relative overflow-hidden pt-12 sm:pt-16 pb-20 sm:pb-24"
         style={{ background: "linear-gradient(160deg, #0F172A 0%, #0D1829 50%, #0F172A 100%)" }}
       >
         {/* Ambient glow blobs */}
         <div
-          className="absolute top-0 left-1/4 w-96 h-96 rounded-full pointer-events-none"
+          className="absolute top-0 left-1/4 w-72 sm:w-96 h-72 sm:h-96 rounded-full pointer-events-none"
           style={{
             background: "radial-gradient(circle, rgba(20,184,166,0.15) 0%, transparent 70%)",
             transform: "translate(-50%, -50%)",
@@ -540,7 +471,7 @@ export default function Home() {
           }}
         />
         <div
-          className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full pointer-events-none"
+          className="absolute bottom-0 right-1/4 w-72 sm:w-96 h-72 sm:h-96 rounded-full pointer-events-none"
           style={{
             background: "radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%)",
             transform: "translate(50%, 50%)",
@@ -558,12 +489,12 @@ export default function Home() {
         />
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-12 items-center">
             {/* Left: copy */}
-            <div className="space-y-7">
+            <div className="space-y-6 sm:space-y-7 text-left">
               {/* Badge pill */}
               <div
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border"
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium border"
                 style={{
                   background: "rgba(20,184,166,0.1)",
                   borderColor: "rgba(20,184,166,0.3)",
@@ -572,34 +503,29 @@ export default function Home() {
               >
                 <span className="text-yellow-400">★</span>
                 <span>
-                  Rating {STORE_INFO.rating.score} dari {STORE_INFO.rating.count} ulasan Google
+                  Rating 4.9 (500+ Ulasan Demo)
                 </span>
               </div>
 
               {/* Headline */}
               <h1
-                className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1]"
+                className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.15]"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 Service Laptop &amp; PC{" "}
                 <span className="text-gradient-teal-blue">Cepat, Bergaransi</span>
-                <br />
-                di Solo
               </h1>
 
               {/* Sub-headline */}
-              <p className="text-lg text-slate-400 leading-relaxed max-w-lg">
-                {STORE_INFO.tagline}. Homeservice area{" "}
-                <span className="text-slate-200 font-medium">{STORE_INFO.homeserviceArea.coverage}</span>.
-                Dipercaya sejak lama oleh{" "}
-                <span className="text-slate-200 font-medium">{STORE_INFO.rating.count}+ pelanggan</span>.
+              <p className="text-base sm:text-lg text-slate-400 leading-relaxed max-w-lg">
+                Solusi servis laptop &amp; komputer terpercaya, cepat, dan bergaransi. Layanan cepat dan transparan untuk kenyamanan Anda.
               </p>
 
               {/* CTA buttons */}
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <a
                   href="/cek-status"
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm text-white transition-all hover:scale-[1.02] hover:brightness-110 active:scale-[0.98] shadow-lg"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 min-h-[44px] rounded-xl font-semibold text-sm text-white transition-all hover:scale-[1.02] hover:brightness-110 active:scale-[0.98] shadow-lg"
                   style={{
                     background: "linear-gradient(135deg, #14B8A6 0%, #3B82F6 100%)",
                     boxShadow: "0 4px 24px rgba(20,184,166,0.35)",
@@ -612,7 +538,7 @@ export default function Home() {
                 </a>
                 <button
                   onClick={openChat}
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm transition-all hover:bg-white/10 active:scale-[0.98] border"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 min-h-[44px] rounded-xl font-semibold text-sm transition-all hover:bg-white/10 active:scale-[0.98] border"
                   style={{ borderColor: "rgba(148,163,184,0.25)", color: "#F1F5F9" }}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -623,14 +549,14 @@ export default function Home() {
               </div>
 
               {/* Trust badges */}
-              <div className="flex flex-wrap gap-4 pt-2">
+              <div className="flex flex-wrap gap-x-5 gap-y-2 pt-2">
                 {[
                   { icon: "🛡️", text: "Bergaransi" },
                   { icon: "⚡", text: "Servis Cepat" },
                   { icon: "🏠", text: "Homeservice Laweyan" },
                   { icon: "💬", text: "Konsultasi Gratis" },
                 ].map((badge) => (
-                  <div key={badge.text} className="flex items-center gap-1.5 text-sm text-slate-400">
+                  <div key={badge.text} className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-400">
                     <span>{badge.icon}</span>
                     <span>{badge.text}</span>
                   </div>
@@ -639,7 +565,7 @@ export default function Home() {
             </div>
 
             {/* Right: illustration */}
-            <div className="relative flex justify-center lg:justify-end">
+            <div className="relative flex justify-center lg:justify-end mt-4 lg:mt-0">
               <LaptopIllustration />
             </div>
           </div>
@@ -647,24 +573,24 @@ export default function Home() {
       </section>
 
       {/* ─── KATEGORI LAYANAN ─── */}
-      <section id="layanan" className="py-20 px-4 sm:px-6">
+      <section id="layanan" className="py-16 sm:py-20 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-sm font-medium mb-3" style={{ color: "#2DD4BF", fontFamily: "var(--font-mono)" }}>
+          <div className="text-center mb-10 sm:mb-14">
+            <p className="text-xs sm:text-sm font-medium mb-3" style={{ color: "#2DD4BF", fontFamily: "var(--font-mono)" }}>
               — Kategori Layanan —
             </p>
             <h2
-              className="text-3xl sm:text-4xl font-bold text-white"
+              className="text-2xl sm:text-4xl font-bold text-white"
               style={{ fontFamily: "var(--font-display)" }}
             >
               Kami Siap Membantu
             </h2>
-            <p className="mt-3 text-slate-400 max-w-xl mx-auto">
+            <p className="mt-3 text-sm sm:text-base text-slate-400 max-w-xl mx-auto">
               Spesialisasi reparasi hardware &amp; software untuk laptop dan PC rakitan Anda.
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {SERVICE_CATEGORIES.map((cat) => (
               <div
                 key={cat.title}
@@ -672,14 +598,6 @@ export default function Home() {
                 style={{
                   background: "rgba(255,255,255,0.03)",
                   borderColor: "rgba(255,255,255,0.08)",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.borderColor = cat.color + "40";
-                  (e.currentTarget as HTMLDivElement).style.background = cat.color + "1A";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.08)";
-                  (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.03)";
                 }}
               >
                 {/* Icon */}
@@ -715,21 +633,21 @@ export default function Home() {
       {/* ─── CARA SERVICE ─── */}
       <section
         id="cara-service"
-        className="py-20 px-4 sm:px-6"
+        className="py-16 sm:py-20 px-4 sm:px-6"
         style={{ background: "rgba(255,255,255,0.02)" }}
       >
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-sm font-medium mb-3" style={{ color: "#2DD4BF", fontFamily: "var(--font-mono)" }}>
+          <div className="text-center mb-10 sm:mb-14">
+            <p className="text-xs sm:text-sm font-medium mb-3" style={{ color: "#2DD4BF", fontFamily: "var(--font-mono)" }}>
               — Alur Servis —
             </p>
             <h2
-              className="text-3xl sm:text-4xl font-bold text-white"
+              className="text-2xl sm:text-4xl font-bold text-white"
               style={{ fontFamily: "var(--font-display)" }}
             >
               Cara Kerja Servis Kami
             </h2>
-            <p className="mt-3 text-slate-400 max-w-xl mx-auto">
+            <p className="mt-3 text-sm sm:text-base text-slate-400 max-w-xl mx-auto">
               Siklus penanganan unit dari masuk hingga siap diambil. Pantau status dengan nomor invoice kapan saja.
             </p>
           </div>
@@ -757,13 +675,6 @@ export default function Home() {
                     }}
                   >
                     {step.num}
-                    {/* Pulse ring */}
-                    {idx === 0 && (
-                      <span
-                        className="absolute inset-0 rounded-full animate-pulse-slow"
-                        style={{ border: `2px solid ${step.color}`, opacity: 0.5 }}
-                      />
-                    )}
                   </div>
                   <h4
                     className="font-semibold text-sm text-white mb-1 leading-tight"
@@ -778,13 +689,13 @@ export default function Home() {
           </div>
 
           {/* Mobile: vertical */}
-          <div className="md:hidden flex flex-col gap-0">
+          <div className="md:hidden flex flex-col gap-0 pl-2">
             {FLOW_STEPS.map((step, idx) => (
               <div key={step.status} className="flex gap-4 items-start relative">
                 {/* Vertical line */}
                 {idx < FLOW_STEPS.length - 1 && (
                   <div
-                    className="absolute left-5 top-12 bottom-0 w-0.5 z-0"
+                    className="absolute left-5 top-10 bottom-0 w-0.5 z-0"
                     style={{ background: `linear-gradient(180deg, ${step.color}60, ${FLOW_STEPS[idx + 1].color}30)` }}
                   />
                 )}
@@ -795,7 +706,7 @@ export default function Home() {
                 >
                   {step.num}
                 </div>
-                <div className="pb-8">
+                <div className="pb-8 pt-1">
                   <h4
                     className="font-semibold text-sm text-white mb-1"
                     style={{ fontFamily: "var(--font-display)" }}
@@ -809,10 +720,10 @@ export default function Home() {
           </div>
 
           {/* CTA Cek Status */}
-          <div className="text-center mt-12">
+          <div className="text-center mt-10 sm:mt-12">
             <a
               href="/cek-status"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm border transition-all hover:bg-white/5"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 min-h-[44px] rounded-xl font-semibold text-sm border transition-all hover:bg-white/5"
               style={{ borderColor: "rgba(45,212,191,0.4)", color: "#2DD4BF" }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -825,26 +736,26 @@ export default function Home() {
       </section>
 
       {/* ─── TESTIMONI ─── */}
-      <section id="testimoni" className="py-20 px-4 sm:px-6">
+      <section id="testimoni" className="py-16 sm:py-20 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-sm font-medium mb-3" style={{ color: "#2DD4BF", fontFamily: "var(--font-mono)" }}>
+          <div className="text-center mb-10 sm:mb-14">
+            <p className="text-xs sm:text-sm font-medium mb-3" style={{ color: "#2DD4BF", fontFamily: "var(--font-mono)" }}>
               — Ulasan Pelanggan —
             </p>
             <h2
-              className="text-3xl sm:text-4xl font-bold text-white"
+              className="text-2xl sm:text-4xl font-bold text-white"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              Dipercaya {STORE_INFO.rating.count}+ Pelanggan di Google
-              <span className="text-yellow-400 ml-2">({STORE_INFO.rating.score}★)</span>
+              Dipercaya Pelanggan
+              <span className="text-yellow-400 ml-2">(4.9★)</span>
             </h2>
-            <p className="mt-3 text-slate-400">
-              Apa kata mereka yang sudah servis di BK Computer
+            <p className="mt-3 text-sm sm:text-base text-slate-400">
+              Apa kata pelanggan yang telah menggunakan layanan servis {settings.shop_name}
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-5">
-            {STORE_INFO.testimonialThemes.map((t, idx) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {DEMO_TESTIMONIALS.map((t, idx) => (
               <div
                 key={idx}
                 className="p-6 rounded-2xl border transition-all duration-300 hover:-translate-y-0.5"
@@ -854,15 +765,14 @@ export default function Home() {
                 }}
               >
                 {/* Stars */}
-                <div className="flex gap-0.5 mb-4">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <span key={i} className="text-yellow-400 text-sm">★</span>
-                  ))}
-                  <span
-                    className="ml-2 text-xs px-2 py-0.5 rounded-full"
-                    style={{ background: "rgba(20,184,166,0.15)", color: "#2DD4BF" }}
-                  >
-                    Google Verified
+                <div className="flex items-center justify-between gap-0.5 mb-4">
+                  <div className="flex gap-0.5">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <span key={i} className="text-yellow-400 text-sm">★</span>
+                    ))}
+                  </div>
+                  <span className="text-xs text-slate-400 font-medium">
+                    {t.author}
                   </span>
                 </div>
                 <h4
@@ -876,46 +786,32 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="text-center mt-10">
-            <a
-              href={STORE_INFO.googleMapsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all hover:scale-[1.02] text-white shadow-lg"
-              style={{
-                background: "linear-gradient(135deg, #14B8A6 0%, #3B82F6 100%)",
-                boxShadow: "0 4px 20px rgba(20,184,166,0.3)",
-              }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-              </svg>
-              Lihat semua ulasan di Google Maps
-            </a>
-          </div>
+          <p className="text-xs text-slate-500 mt-6 italic text-center">
+            *Testimoni contoh untuk keperluan demo
+          </p>
         </div>
       </section>
 
       {/* ─── LOKASI & JAM ─── */}
       <section
         id="kontak"
-        className="py-20 px-4 sm:px-6"
+        className="py-16 sm:py-20 px-4 sm:px-6"
         style={{ background: "rgba(255,255,255,0.02)" }}
       >
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-sm font-medium mb-3" style={{ color: "#2DD4BF", fontFamily: "var(--font-mono)" }}>
+          <div className="text-center mb-10 sm:mb-14">
+            <p className="text-xs sm:text-sm font-medium mb-3" style={{ color: "#2DD4BF", fontFamily: "var(--font-mono)" }}>
               — Temukan Kami —
             </p>
             <h2
-              className="text-3xl sm:text-4xl font-bold text-white"
+              className="text-2xl sm:text-4xl font-bold text-white"
               style={{ fontFamily: "var(--font-display)" }}
             >
               Lokasi &amp; Jam Operasional
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Info cards */}
             <div className="space-y-5">
               {/* Alamat */}
@@ -933,16 +829,7 @@ export default function Home() {
                   <div className="text-xs text-slate-500 uppercase tracking-wider mb-1" style={{ fontFamily: "var(--font-mono)" }}>
                     Alamat Workshop
                   </div>
-                  <div className="text-sm text-slate-200 leading-relaxed">{STORE_INFO.address.full}</div>
-                  <a
-                    href={STORE_INFO.googleMapsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block mt-2 text-xs font-medium hover:underline"
-                    style={{ color: "#2DD4BF" }}
-                  >
-                    Lihat di Google Maps ↗
-                  </a>
+                  <div className="text-sm text-slate-200 leading-relaxed">{settings.shop_address}</div>
                 </div>
               </div>
 
@@ -962,33 +849,12 @@ export default function Home() {
                     Jam Operasional Toko
                   </div>
                   <div className="space-y-2">
-                    {[
-                      { hari: "Senin – Jumat", jam: "09.00 – 20.00 WIB", open: true },
-                      { hari: "Sabtu", jam: "09.00 – 17.00 WIB", open: true },
-                      { hari: "Minggu", jam: "Tutup", open: false },
-                    ].map((row) => (
-                      <div key={row.hari} className="flex items-center justify-between text-sm">
-                        <span className="text-slate-400">{row.hari}</span>
-                        <span
-                          className={`font-medium px-2 py-0.5 rounded-md text-xs ${
-                            row.open
-                              ? "text-emerald-400"
-                              : "text-red-400"
-                          }`}
-                          style={{
-                            background: row.open ? "rgba(52,211,153,0.1)" : "rgba(239,68,68,0.1)",
-                          }}
-                        >
-                          {row.jam}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  <div
-                    className="mt-4 pt-4 border-t text-xs text-slate-500"
-                    style={{ borderColor: "rgba(255,255,255,0.06)" }}
-                  >
-                    🏠 Homeservice: Senin–Jumat 08.00–16.00 WIB · Hanya area {STORE_INFO.homeserviceArea.coverage}
+                    <div className="flex items-center justify-between text-sm flex-wrap gap-2">
+                      <span className="text-slate-400">Jam Operasional</span>
+                      <span className="font-medium px-2 py-0.5 rounded-md text-xs text-emerald-400 bg-emerald-500/10">
+                        {settings.operational_hours}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1008,12 +874,12 @@ export default function Home() {
                   <div className="text-xs text-slate-500 uppercase tracking-wider mb-1" style={{ fontFamily: "var(--font-mono)" }}>
                     Telepon / WhatsApp
                   </div>
-                  <div className="text-sm text-slate-200 font-medium">{STORE_INFO.contact.phone}</div>
+                  <div className="text-sm text-slate-200 font-medium">{settings.shop_whatsapp}</div>
                   <a
-                    href={`https://wa.me/${STORE_INFO.contact.whatsapp}`}
+                    href={`https://wa.me/${settings.shop_whatsapp}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 mt-2 text-xs font-medium hover:underline"
+                    className="inline-flex items-center gap-1.5 mt-2 text-xs font-medium hover:underline min-h-[36px]"
                     style={{ color: "#22C55E" }}
                   >
                     <IconWhatsApp />
@@ -1025,7 +891,7 @@ export default function Home() {
 
             {/* Map embed placeholder */}
             <div
-              className="rounded-2xl border overflow-hidden relative min-h-[320px] flex flex-col items-center justify-center"
+              className="rounded-2xl border overflow-hidden relative min-h-[280px] sm:min-h-[320px] flex flex-col items-center justify-center"
               style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.08)" }}
             >
               {/* Decorative map-like SVG */}
@@ -1035,26 +901,23 @@ export default function Home() {
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                {/* Roads */}
                 <path d="M0 150 H400" stroke="#2DD4BF" strokeWidth="3" />
                 <path d="M200 0 V300" stroke="#3B82F6" strokeWidth="3" />
                 <path d="M0 80 L120 80 L120 150" stroke="#2DD4BF" strokeWidth="2" />
                 <path d="M400 220 L280 220 L280 150" stroke="#3B82F6" strokeWidth="2" />
                 <path d="M80 0 L80 80" stroke="#2DD4BF" strokeWidth="1.5" />
                 <path d="M320 300 L320 220" stroke="#3B82F6" strokeWidth="1.5" />
-                {/* Blocks */}
                 <rect x="30" y="100" width="70" height="40" rx="4" fill="#334155" opacity="0.5" />
                 <rect x="230" y="160" width="50" height="50" rx="4" fill="#334155" opacity="0.5" />
                 <rect x="130" y="20" width="60" height="55" rx="4" fill="#334155" opacity="0.5" />
                 <rect x="130" y="160" width="60" height="40" rx="4" fill="#334155" opacity="0.5" />
-                {/* Location pin circles */}
                 <circle cx="200" cy="150" r="12" fill="#14B8A6" opacity="0.8" />
                 <circle cx="200" cy="150" r="6" fill="white" />
                 <circle cx="200" cy="150" r="20" stroke="#14B8A6" strokeWidth="2" strokeDasharray="4 4" opacity="0.4" />
               </svg>
               {/* Overlay card */}
               <div
-                className="relative z-10 text-center p-6 rounded-xl border"
+                className="relative z-10 text-center p-6 rounded-xl border max-w-xs mx-auto"
                 style={{ background: "rgba(15,23,42,0.85)", borderColor: "rgba(20,184,166,0.3)" }}
               >
                 <div className="text-3xl mb-3">📍</div>
@@ -1062,18 +925,12 @@ export default function Home() {
                   className="font-bold text-white text-base mb-1"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
-                  BK Computer — Laweyan, Solo
+                  {settings.shop_name}
                 </p>
-                <p className="text-xs text-slate-400 mb-4">{STORE_INFO.address.street}</p>
-                <a
-                  href={STORE_INFO.googleMapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-all hover:brightness-110"
-                  style={{ background: "linear-gradient(135deg, #14B8A6, #3B82F6)" }}
-                >
-                  Buka Google Maps ↗
-                </a>
+                <p className="text-xs text-slate-400 mb-2">{settings.shop_address}</p>
+                <p className="text-xs text-teal-400 font-mono italic">
+                  Lokasi toko akan tampil di sini
+                </p>
               </div>
             </div>
           </div>
@@ -1081,87 +938,7 @@ export default function Home() {
       </section>
 
       {/* ─── FOOTER ─── */}
-      <footer
-        className="py-12 px-4 sm:px-6 border-t"
-        style={{ background: "#080F1E", borderColor: "rgba(255,255,255,0.06)" }}
-      >
-        <div className="max-w-6xl mx-auto">
-          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8 mb-10">
-            {/* Brand */}
-            <div className="sm:col-span-2 md:col-span-1">
-              <div className="flex items-center gap-3 mb-4">
-                <IconLogo size={32} />
-                <div>
-                  <div className="font-bold text-sm text-white" style={{ fontFamily: "var(--font-display)" }}>BK Computer</div>
-                  <div className="text-[10px] text-slate-500">Pusat Service Laptop Solo</div>
-                </div>
-              </div>
-              <p className="text-xs text-slate-500 leading-relaxed">{STORE_INFO.tagline}.</p>
-            </div>
-
-            {/* Layanan */}
-            <div>
-              <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-4" style={{ fontFamily: "var(--font-mono)" }}>
-                Layanan
-              </h4>
-              <ul className="space-y-2.5">
-                {["Servis Laptop", "Servis PC", "Katalog Sparepart", "Upgrade RAM/SSD"].map((item) => (
-                  <li key={item}>
-                    <a href="#layanan" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">
-                      {item}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Link cepat */}
-            <div>
-              <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-4" style={{ fontFamily: "var(--font-mono)" }}>
-                Link Cepat
-              </h4>
-              <ul className="space-y-2.5">
-                <li><a href="/cek-status" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">Cek Status Service</a></li>
-                <li><a href="/sparepart" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">Katalog Sparepart</a></li>
-                <li><a href="#cara-service" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">Cara Service</a></li>
-                <li><a href="/admin/login" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">Login Admin</a></li>
-              </ul>
-            </div>
-
-            {/* Kontak singkat */}
-            <div>
-              <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-4" style={{ fontFamily: "var(--font-mono)" }}>
-                Hubungi Kami
-              </h4>
-              <div className="space-y-2.5">
-                <div className="text-xs text-slate-500">{STORE_INFO.contact.phone}</div>
-                <div className="text-xs text-slate-500">
-                  Senin–Jumat 09.00–20.00<br />
-                  Sabtu 09.00–17.00
-                </div>
-                <a
-                  href={`https://wa.me/${STORE_INFO.contact.whatsapp}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs font-medium hover:underline"
-                  style={{ color: "#22C55E" }}
-                >
-                  <IconWhatsApp />
-                  Chat WhatsApp
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <div
-            className="pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600"
-            style={{ borderColor: "rgba(255,255,255,0.05)" }}
-          >
-            <span>© {new Date().getFullYear()} {STORE_INFO.name}. All rights reserved.</span>
-            <span style={{ fontFamily: "var(--font-mono)" }}>Made with ♥ for Solo</span>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter settings={settings} />
 
       {/* ─── FLOATING CHAT WIDGET ─── */}
       <>
@@ -1170,28 +947,30 @@ export default function Home() {
           <>
             {/* Mobile overlay */}
             <div
-              className="fixed inset-0 bg-black/50 z-40 sm:hidden animate-fade-in"
+              className="fixed inset-0 bg-black/60 z-40 sm:hidden animate-fade-in"
               onClick={() => setIsChatOpen(false)}
             />
 
-            {/* Panel */}
+            {/* Panel: bottom sheet on mobile (<640px), floating panel on desktop */}
             <div
               ref={chatPanelRef}
-              className="fixed z-50 flex flex-col overflow-hidden shadow-2xl animate-slide-up chat-panel-mobile"
+              className="fixed z-50 flex flex-col overflow-hidden shadow-2xl animate-slide-up max-sm:inset-x-0 max-sm:bottom-0 max-sm:h-[85vh] max-sm:rounded-t-3xl sm:bottom-[80px] sm:right-6 sm:w-[380px] sm:h-[520px] sm:rounded-2xl"
               style={{
-                /* Desktop */
-                bottom: "80px",
-                right: "24px",
-                width: "380px",
-                height: "520px",
-                borderRadius: "20px",
                 background: "#111827",
                 border: "1px solid rgba(255,255,255,0.10)",
               }}
             >
+              {/* Handle bar for mobile bottom sheet */}
+              <div
+                className="sm:hidden flex justify-center pt-2.5 pb-1 cursor-pointer flex-shrink-0"
+                onClick={() => setIsChatOpen(false)}
+              >
+                <div className="w-12 h-1.5 rounded-full bg-slate-600/70" />
+              </div>
+
               {/* Header */}
               <div
-                className="flex items-center justify-between px-5 py-4 border-b flex-shrink-0"
+                className="flex items-center justify-between px-5 py-3.5 sm:py-4 border-b flex-shrink-0"
                 style={{
                   background: "linear-gradient(135deg, #14B8A6 0%, #3B82F6 100%)",
                   borderColor: "rgba(255,255,255,0.1)",
@@ -1205,7 +984,7 @@ export default function Home() {
                   </div>
                   <div>
                     <div className="text-sm font-semibold text-white" style={{ fontFamily: "var(--font-display)" }}>
-                      Asisten BK Computer
+                      Asisten {settings.shop_name}
                     </div>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse-slow" />
@@ -1215,7 +994,8 @@ export default function Home() {
                 </div>
                 <button
                   onClick={() => setIsChatOpen(false)}
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                  aria-label="Tutup chat"
                 >
                   <IconX />
                 </button>
@@ -1239,7 +1019,7 @@ export default function Home() {
                       </div>
                     )}
                     <div
-                      className="max-w-[82%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-line"
+                      className="max-w-[85%] sm:max-w-[82%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-line"
                       style={
                         msg.sender === "user"
                           ? {
@@ -1258,10 +1038,10 @@ export default function Home() {
                       {msg.text}
                       {msg.showWhatsappButton && (
                         <a
-                          href={`https://wa.me/${STORE_INFO.contact.whatsapp}?text=Halo%20BK%20Computer%2C%20saya%20ingin%20konsultasi%20mengenai%20servis%20laptop.`}
+                          href={`https://wa.me/${settings.shop_whatsapp}?text=Halo%20${encodeURIComponent(settings.shop_name)}%2C%20saya%20ingin%20konsultasi%20mengenai%20servis%20laptop.`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-full mt-3 flex items-center justify-center gap-2 py-2 rounded-lg text-[11px] font-semibold text-white transition-all hover:brightness-110"
+                          className="w-full mt-3 flex items-center justify-center gap-2 py-2.5 min-h-[44px] rounded-lg text-xs font-semibold text-white transition-all hover:brightness-110"
                           style={{ background: "linear-gradient(135deg, #22C55E, #16A34A)" }}
                         >
                           <IconWhatsApp />
@@ -1310,10 +1090,10 @@ export default function Home() {
                 style={{ borderColor: "rgba(255,255,255,0.06)" }}
               >
                 <a
-                  href={`https://wa.me/${STORE_INFO.contact.whatsapp}?text=Halo%20BK%20Computer%2C%20saya%20ingin%20konsultasi%20mengenai%20servis%20laptop.`}
+                  href={`https://wa.me/${settings.shop_whatsapp}?text=Halo%20${encodeURIComponent(settings.shop_name)}%2C%20saya%20ingin%20konsultasi%20mengenai%20servis%20laptop.`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:brightness-110"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 min-h-[44px] rounded-xl text-sm font-semibold text-white transition-all hover:brightness-110"
                   style={{ background: "linear-gradient(135deg, #22C55E, #16A34A)" }}
                 >
                   <IconWhatsApp />
@@ -1333,7 +1113,7 @@ export default function Home() {
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !isTyping && handleSendMessage(inputMessage)}
                   disabled={isTyping}
-                  className="flex-1 px-4 py-2.5 rounded-xl text-sm outline-none transition-all"
+                  className="flex-1 px-4 py-2.5 min-h-[44px] rounded-xl text-sm outline-none transition-all"
                   style={{
                     background: "rgba(255,255,255,0.06)",
                     border: "1px solid rgba(255,255,255,0.10)",
@@ -1351,7 +1131,7 @@ export default function Home() {
                 <button
                   onClick={() => handleSendMessage(inputMessage)}
                   disabled={!inputMessage.trim() || isTyping}
-                  className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition-all hover:brightness-110 disabled:opacity-40 flex-shrink-0"
+                  className="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:brightness-110 disabled:opacity-40 flex-shrink-0 min-h-[44px] min-w-[44px]"
                   style={{ background: "linear-gradient(135deg, #14B8A6, #3B82F6)" }}
                 >
                   <IconSend />
@@ -1365,7 +1145,7 @@ export default function Home() {
         <button
           id="chat-widget-btn"
           onClick={() => setIsChatOpen(!isChatOpen)}
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-2xl transition-all hover:scale-110 active:scale-95"
+          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-2xl transition-all hover:scale-110 active:scale-95 min-h-[44px] min-w-[44px]"
           style={{
             background: isChatOpen
               ? "rgba(30,41,59,0.95)"

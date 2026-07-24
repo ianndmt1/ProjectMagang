@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireActiveStaff } from "@/lib/auth/requireActiveStaff";
+import { getAppSettings } from "@/lib/settings";
 
 /**
  * GET /api/admin/orders/[id]/wa-link
@@ -21,6 +22,7 @@ export async function GET(
 
   try {
     const supabase = createServerSupabaseClient();
+    const settings = await getAppSettings();
 
     const { data, error } = await supabase
       .from("service_orders")
@@ -51,14 +53,11 @@ export async function GET(
     // Format pesan pre-filled WhatsApp
     const message = `Halo Kak ${data.customer_name},
 
-Kami dari BK Computer Solo ingin menginfokan bahwa perbaikan perangkat *${data.device_info}* dengan nomor invoice *${data.invoice_code}* telah *SELESAI* dikerjakan dan siap diambil.
+Kami dari ${settings.shop_name} ingin menginfokan bahwa perbaikan perangkat *${data.device_info}* dengan nomor invoice *${data.invoice_code}* telah *SELESAI* dikerjakan dan siap diambil.
 
 Total biaya: *${priceFormatted}*.
 
-Toko kami buka:
-- Senin–Jumat: 09.00–20.00 WIB
-- Sabtu: 09.00–17.00 WIB
-- Minggu: Tutup
+Jam Operasional: ${settings.operational_hours}.
 
 Silakan datang ke toko untuk pengambilan unit. Terima kasih banyak!`;
 

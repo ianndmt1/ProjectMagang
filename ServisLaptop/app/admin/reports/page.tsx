@@ -122,36 +122,58 @@ export default function ReportsPage() {
         ) : reports.length === 0 ? (
           <div className="text-center py-12 text-sm" style={{ color: "#94A3B8" }}>Tidak ada data laporan.</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead>
-                <tr className="border-b" style={{ background: "#F8FAFC", borderColor: "#E2E8F0" }}>
-                  <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "#94A3B8" }}>Bulan</th>
-                  <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "#94A3B8" }}>Total Servis</th>
-                  <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "#94A3B8" }}>Servis Selesai</th>
-                  <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "#94A3B8" }}>Homeservice</th>
-                  <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "#94A3B8" }}>Pendapatan Bersih</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reports.map((rep, idx) => (
-                  <tr
-                    key={idx}
-                    className="border-b transition-colors hover:bg-slate-50"
-                    style={{ borderColor: "#F1F5F9" }}
-                  >
-                    <td className="px-5 py-4 font-bold" style={{ color: "#0F172A" }}>{formatMonth(rep.bulan)}</td>
-                    <td className="px-5 py-4" style={{ color: "#475569" }}>{rep.total_order} Order</td>
-                    <td className="px-5 py-4" style={{ color: "#475569" }}>{rep.total_selesai} Unit</td>
-                    <td className="px-5 py-4" style={{ color: "#475569" }}>{rep.total_homeservice} Panggilan</td>
-                    <td className="px-5 py-4 font-semibold" style={{ color: "#16A34A" }}>
-                      {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(rep.total_pendapatan)}
-                    </td>
+          <>
+            {/* Desktop Table (>=768px) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead>
+                  <tr className="border-b" style={{ background: "#F8FAFC", borderColor: "#E2E8F0" }}>
+                    <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "#94A3B8" }}>Bulan</th>
+                    <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "#94A3B8" }}>Total Servis</th>
+                    <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "#94A3B8" }}>Servis Selesai</th>
+                    <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "#94A3B8" }}>Homeservice</th>
+                    <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "#94A3B8" }}>Pendapatan Bersih</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {reports.map((rep, idx) => (
+                    <tr
+                      key={idx}
+                      className="border-b transition-colors hover:bg-slate-50"
+                      style={{ borderColor: "#F1F5F9" }}
+                    >
+                      <td className="px-5 py-4 font-bold" style={{ color: "#0F172A" }}>{formatMonth(rep.bulan)}</td>
+                      <td className="px-5 py-4" style={{ color: "#475569" }}>{rep.total_order} Order</td>
+                      <td className="px-5 py-4" style={{ color: "#475569" }}>{rep.total_selesai} Unit</td>
+                      <td className="px-5 py-4" style={{ color: "#475569" }}>{rep.total_homeservice} Panggilan</td>
+                      <td className="px-5 py-4 font-semibold" style={{ color: "#16A34A" }}>
+                        {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(rep.total_pendapatan)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card List (<768px) */}
+            <div className="md:hidden divide-y" style={{ borderColor: "#F1F5F9" }}>
+              {reports.map((rep, idx) => (
+                <div key={idx} className="p-4 space-y-2 bg-white">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-sm" style={{ color: "#0F172A" }}>{formatMonth(rep.bulan)}</span>
+                    <span className="font-semibold text-sm" style={{ color: "#16A34A" }}>
+                      {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(rep.total_pendapatan)}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-xs pt-1" style={{ color: "#475569" }}>
+                    <div>Total: <strong className="text-slate-800">{rep.total_order}</strong></div>
+                    <div>Selesai: <strong className="text-emerald-700">{rep.total_selesai}</strong></div>
+                    <div>Home: <strong className="text-amber-700">{rep.total_homeservice}</strong></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>
