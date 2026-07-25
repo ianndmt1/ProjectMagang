@@ -51,7 +51,7 @@ export const STORE_INFO = {
   },
 
   homeserviceArea: {
-    coverage: "Kecamatan Laweyan",
+    coverage: "-",
     extraFeeNote: "Biaya tambahan Rp 10.000/km untuk jarak di luar radius 10km dari toko",
   },
 

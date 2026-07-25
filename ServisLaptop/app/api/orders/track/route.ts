@@ -41,16 +41,18 @@ function normalizePhone(raw: string): string {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const invoice = searchParams.get("invoice");
+    const rawInvoice = searchParams.get("invoice");
     const whatsapp = searchParams.get("whatsapp");
 
     // Validasi: parameter invoice wajib ada dan tidak kosong
-    if (!invoice || invoice.trim() === "") {
+    if (!rawInvoice || rawInvoice.trim() === "") {
       return NextResponse.json(
         { error: "Parameter 'invoice' wajib diisi. Contoh: ?invoice=SRV-20240101-0001" },
         { status: 400 }
       );
     }
+
+    const invoice = rawInvoice.trim().toUpperCase();
 
     const supabase = createServerSupabaseClient();
 
@@ -76,7 +78,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase
       .from("service_orders")
       .select(selectFields)
-      .eq("invoice_code", invoice.trim().toUpperCase())
+      .eq("invoice_code", invoice)
       .maybeSingle();
 
     if (error) {

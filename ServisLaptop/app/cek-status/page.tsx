@@ -132,14 +132,15 @@ export default function TrackStatusPage() {
 
   const handleTrack = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!invoiceInput.trim()) return;
+    const cleanInvoice = invoiceInput.trim();
+    if (!cleanInvoice) return;
 
     setLoading(true);
     setError(null);
     setOrder(null);
 
     /* Demo shortcut */
-    const upper = invoiceInput.trim().toUpperCase();
+    const upper = cleanInvoice.toUpperCase();
     if (upper === "SRV-DEMO" || upper === "SRV-20260701-0001") {
       setTimeout(() => {
         setOrder(demoOrder);
@@ -149,7 +150,7 @@ export default function TrackStatusPage() {
     }
 
     try {
-      let url = `/api/orders/track?invoice=${encodeURIComponent(invoiceInput.trim())}`;
+      let url = `/api/orders/track?invoice=${encodeURIComponent(cleanInvoice)}`;
       if (waInput.trim()) {
         url += `&whatsapp=${encodeURIComponent(waInput.trim())}`;
       }
@@ -227,7 +228,7 @@ export default function TrackStatusPage() {
                 type="text"
                 value={invoiceInput}
                 onChange={(e) => setInvoiceInput(e.target.value)}
-                placeholder="Nomor invoice, contoh SRV-20260701-0001"
+                placeholder="Nomor invoice, contoh SRV-20260701-0004"
                 required
                 className="w-full px-4 py-3 min-h-[44px] rounded-xl text-sm outline-none transition-all"
                 style={{
