@@ -74,8 +74,8 @@
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/username/laptopdoctor-ai.git
-cd laptopdoctor-ai
+git clone https://github.com/ianndmt1/ProjectMagang/tree/main/ServisLaptop.git
+cd ServisLaptop
 ```
 
 ### 2. Install Dependencies
@@ -112,7 +112,7 @@ Buka [http://localhost:3000](http://localhost:3000) di browser.
 
 ### 1. Buat Project Supabase
 1. Daftar di [supabase.com](https://supabase.com)
-2. Klik **New Project** → isi nama: `LaptopDoctorAI`
+2. Klik **New Project** → isi nama: `ServisLaptop`
 3. Pilih region: **Southeast Asia (Singapore)**
 4. Tunggu project siap (~2 menit)
 
