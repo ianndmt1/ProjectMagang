@@ -412,12 +412,12 @@ export default function Home() {
   const handleSendMessage = async (text: string) => {
     if (!text.trim()) return;
     const userMsg = { sender: "user" as const, text: text.trim() };
-    
+
     const history = chatMessages.map(msg => ({
       role: msg.sender === "user" ? "user" : "model",
       text: msg.text
     }));
-    
+
     setChatMessages((prev) => [...prev, userMsg]);
     setInputMessage("");
     setIsTyping(true);
@@ -429,15 +429,15 @@ export default function Home() {
         body: JSON.stringify({ message: text.trim(), history })
       });
       const data = await response.json();
-      
-      setChatMessages((prev) => [...prev, { 
-        sender: "ai", 
+
+      setChatMessages((prev) => [...prev, {
+        sender: "ai",
         text: data.reply || "Maaf, AI sedang mengalami gangguan.",
         showWhatsappButton: data.show_whatsapp_button
       }]);
     } catch (error) {
-      setChatMessages((prev) => [...prev, { 
-        sender: "ai", 
+      setChatMessages((prev) => [...prev, {
+        sender: "ai",
         text: "Maaf, AI lagi sibuk. Coba beberapa saat lagi atau hubungi kami langsung lewat WhatsApp.",
         showWhatsappButton: true
       }]);
@@ -553,7 +553,7 @@ export default function Home() {
                 {[
                   { icon: "🛡️", text: "Bergaransi" },
                   { icon: "⚡", text: "Servis Cepat" },
-                  { icon: "🏠", text: "Homeservice Laweyan" },
+                  { icon: "🏠", text: "Homeservice" },
                   { icon: "💬", text: "Konsultasi Gratis" },
                 ].map((badge) => (
                   <div key={badge.text} className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-400">
@@ -1023,16 +1023,16 @@ export default function Home() {
                       style={
                         msg.sender === "user"
                           ? {
-                              background: "linear-gradient(135deg, #14B8A6, #3B82F6)",
-                              color: "white",
-                              borderBottomRightRadius: "4px",
-                            }
+                            background: "linear-gradient(135deg, #14B8A6, #3B82F6)",
+                            color: "white",
+                            borderBottomRightRadius: "4px",
+                          }
                           : {
-                              background: "rgba(255,255,255,0.06)",
-                              color: "#E2E8F0",
-                              border: "1px solid rgba(255,255,255,0.08)",
-                              borderBottomLeftRadius: "4px",
-                            }
+                            background: "rgba(255,255,255,0.06)",
+                            color: "#E2E8F0",
+                            border: "1px solid rgba(255,255,255,0.08)",
+                            borderBottomLeftRadius: "4px",
+                          }
                       }
                     >
                       {msg.text}
