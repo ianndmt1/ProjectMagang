@@ -69,7 +69,7 @@
 ### 1. Clone / Salin Project
 
 ```bash
-git clone <url-repo-anda>
+git clone https://github.com/ianndmt1/ProjectMagang/tree/main/pos-kelontong
 ```
 
 Salin folder `pos-kelontong` ke dalam `htdocs/` XAMPP.
@@ -117,7 +117,7 @@ http://localhost/pos-kelontong/
 | Role | Username | Password |
 |---|---|---|
 | Pemilik | `pemilik` | `pemilik123` |
-| Kasir | `kasir1` | `kasir123` |
+| Kasir | `kasir2` | `kasir123` |
 
 > ⚠️ Ini akun demo bawaan. Jangan gunakan untuk data produksi — segera ganti password melalui menu **Master Pengguna** (atau update langsung hash password di tabel `users`) setelah deploy.
 
