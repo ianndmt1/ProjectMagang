@@ -38,7 +38,13 @@
 
 ## 🖥️ Screenshot
 
-> *(Tambahkan screenshot aplikasi di folder `docs/` lalu tautkan di sini, contoh: `![Kasir](docs/kasir.png)`)*
+| Halaman Login | Dashboard Pemilik |
+|---|---|
+| ![Login](docs/login.png) | ![Admin](docs/dashboard_pemilik.png) |
+
+| Dashboard kasir |
+|---|
+| ![Owner](docs/dashboard_kasir.png) |
 
 ---
 
