@@ -1,0 +1,810 @@
+/**
+ * File: assets/css/style.css
+ * Deskripsi: Stylesheet utama POS Toko Kelontong — Design System Terpusat
+ * Fase 9 - Polish UI/UX: Tambah micro-interactions, responsive kasir, aksesibilitas, konsistensi komponen
+ */
+
+/* ========================================== */
+/* 1. VARIABEL DESAIN (DESIGN TOKENS)         */
+/* ========================================== */
+:root {
+    /* Warna utama — dipakai konsisten di seluruh halaman */
+    --pos-blue:         #2563eb;
+    --pos-blue-dark:    #1d4ed8;
+    --pos-blue-hover:   #1e40af;
+    --pos-navy:         #1e3a8a;
+    --pos-bg:           #f1f5f9;
+    --pos-surface:      #ffffff;
+
+    /* Warna teks — kontras minimal 4.5:1 (WCAG AA) */
+    --pos-text:         #0f172a;
+    --pos-text-muted:   #475569;
+    --pos-text-light:   #94a3b8;
+
+    /* Border & Shadow */
+    --pos-border:       #e2e8f0;
+    --pos-border-focus: #93c5fd;
+    --pos-shadow-sm:    0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --pos-shadow:       0 4px 12px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04);
+    --pos-shadow-lg:    0 10px 25px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.04);
+
+    /* Radius */
+    --pos-radius-sm:    6px;
+    --pos-radius:       10px;
+    --pos-radius-lg:    14px;
+
+    /* Transisi halus untuk micro-interaction */
+    --pos-transition:   all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --pos-transition-fast: all 0.15s ease;
+}
+
+/* ========================================== */
+/* 2. RESET & BASE TYPOGRAPHY                 */
+/* ========================================== */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--pos-bg);
+    color: var(--pos-text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: 0.9375rem; /* 15px — lebih mudah dibaca dari 14px default Bootstrap */
+    line-height: 1.6;
+}
+
+main {
+    flex: 1;
+}
+
+/* Judul halaman — konsisten font weight */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--pos-text);
+}
+
+/* ========================================== */
+/* 3. NAVBAR & NAVIGASI                       */
+/* ========================================== */
+.navbar-custom {
+    background: linear-gradient(135deg, var(--pos-navy) 0%, var(--pos-blue) 100%);
+    box-shadow: 0 4px 16px rgba(30, 58, 138, 0.18);
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: -0.3px;
+    transition: var(--pos-transition-fast);
+}
+
+.navbar-brand:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+/* Nav link — hover & active state */
+.navbar-dark .nav-link {
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 0.45rem 0.85rem !important;
+    border-radius: var(--pos-radius-sm);
+    transition: var(--pos-transition);
+    color: rgba(255,255,255,0.88) !important;
+}
+
+.navbar-dark .nav-link:hover,
+.navbar-dark .nav-link:focus {
+    background-color: rgba(255,255,255,0.15);
+    color: #ffffff !important;
+}
+
+.navbar-dark .nav-link.active {
+    background-color: rgba(255,255,255,0.22);
+    color: #ffffff !important;
+    font-weight: 600;
+}
+
+/* Dropdown menu — lebih bersih */
+.dropdown-menu {
+    border: 1px solid var(--pos-border);
+    border-radius: var(--pos-radius);
+    box-shadow: var(--pos-shadow-lg);
+    padding: 0.5rem;
+    animation: dropdownFadeIn 0.15s ease;
+}
+
+@keyframes dropdownFadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-item {
+    border-radius: var(--pos-radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.5rem 0.85rem;
+    transition: var(--pos-transition-fast);
+    color: var(--pos-text);
+}
+
+.dropdown-item:hover {
+    background-color: #eff6ff;
+    color: var(--pos-blue);
+}
+
+.dropdown-item.active,
+.dropdown-item:active {
+    background-color: var(--pos-blue);
+    color: #fff;
+}
+
+/* ========================================== */
+/* 4. KARTU & SURFACE                         */
+/* ========================================== */
+.card-custom {
+    background: var(--pos-surface);
+    border: 1px solid var(--pos-border);
+    border-radius: var(--pos-radius-lg);
+    box-shadow: var(--pos-shadow-sm);
+    transition: box-shadow 0.25s ease;
+}
+
+.card-custom:hover {
+    box-shadow: var(--pos-shadow);
+}
+
+/* Kartu produk di kasir — hover interaktif */
+.card-product {
+    cursor: pointer;
+    border: 1.5px solid var(--pos-border);
+    border-radius: var(--pos-radius);
+    transition: var(--pos-transition);
+    background: var(--pos-surface);
+}
+
+.card-product:hover,
+.card-product:focus {
+    border-color: var(--pos-blue);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.12), var(--pos-shadow);
+    transform: translateY(-2px);
+}
+
+.card-product:active {
+    transform: translateY(0);
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.18);
+}
+
+/* Card header — strip konsisten */
+.card-header {
+    border-radius: var(--pos-radius-lg) var(--pos-radius-lg) 0 0 !important;
+}
+
+/* Kartu statistik — nilai muncul lebih menonjol */
+.card-stat-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+}
+
+/* ========================================== */
+/* 5. TOMBOL (BUTTONS) — MICRO-INTERACTIONS   */
+/* ========================================== */
+.btn {
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: var(--pos-radius-sm);
+    transition: var(--pos-transition);
+    letter-spacing: 0.01em;
+}
+
+/* Tombol solid — hover naik sedikit + shadow */
+.btn-primary {
+    background-color: var(--pos-blue);
+    border-color: var(--pos-blue);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: var(--pos-blue-dark);
+    border-color: var(--pos-blue-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37,99,235,0.35);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.btn-success:hover,
+.btn-success:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(34,197,94,0.35);
+}
+
+.btn-danger:hover,
+.btn-danger:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239,68,68,0.35);
+}
+
+.btn-warning:hover,
+.btn-warning:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(245,158,11,0.30);
+}
+
+.btn-success:active,
+.btn-danger:active,
+.btn-warning:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* Tombol outline */
+.btn-outline-primary:hover {
+    transform: translateY(-1px);
+}
+
+/* Tombol aksi tabel — lebih compact */
+.btn-aksi {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.8125rem;
+    border-radius: 6px;
+}
+
+/* Tombol icon-only */
+.btn-icon {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: var(--pos-transition);
+}
+
+.btn-icon:hover {
+    transform: scale(1.08);
+}
+
+/* ========================================== */
+/* 6. FORM ELEMENTS — FOCUS STATE             */
+/* ========================================== */
+.form-control,
+.form-select {
+    font-size: 0.9rem;
+    border-color: var(--pos-border);
+    border-radius: var(--pos-radius-sm);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    color: var(--pos-text);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--pos-blue);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+    outline: none;
+}
+
+.form-control::placeholder {
+    color: var(--pos-text-light);
+    font-weight: 400;
+}
+
+/* Label form — konsisten */
+.form-label {
+    font-weight: 600;
+    font-size: 0.8375rem;
+    color: var(--pos-text);
+    margin-bottom: 0.35rem;
+}
+
+/* Input group */
+.input-group-text {
+    background-color: #f8fafc;
+    border-color: var(--pos-border);
+    color: var(--pos-text-muted);
+}
+
+/* ========================================== */
+/* 7. TABEL — RESPONSIF & KONSISTEN           */
+/* ========================================== */
+.table {
+    font-size: 0.875rem;
+    color: var(--pos-text);
+}
+
+/* Header tabel berstandar */
+.table-custom th,
+.table th {
+    background-color: #f8fafc;
+    color: var(--pos-text-muted);
+    font-weight: 700;
+    font-size: 0.775rem;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    border-bottom: 2px solid var(--pos-border);
+    padding: 0.75rem 1rem;
+    white-space: nowrap;
+}
+
+.table td {
+    padding: 0.7rem 1rem;
+    vertical-align: middle;
+    border-color: #f1f5f9;
+}
+
+/* Hover row */
+.table-hover tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* Bungkus tabel agar tidak overflow di mobile */
+.table-responsive {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Baris kosong / empty state */
+.table-empty-state {
+    padding: 3rem 1rem;
+    text-align: center;
+    color: var(--pos-text-muted);
+}
+
+.table-empty-state i {
+    font-size: 2.5rem;
+    opacity: 0.35;
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+/* ========================================== */
+/* 8. BADGE & CHIP                            */
+/* ========================================== */
+/* Role badge */
+.badge-role-pemilik {
+    background-color: #ede9fe;
+    color: #5b21b6;
+    border: 1px solid #ddd6fe;
+    font-weight: 600;
+}
+
+.badge-role-kasir {
+    background-color: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+    font-weight: 600;
+}
+
+/* Badge stok kritis */
+.badge-stok-kritis {
+    background-color: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    font-weight: 600;
+}
+
+/* Badge status piutang */
+.badge-belum-lunas {
+    background-color: #fff7ed;
+    color: #c2410c;
+    border: 1px solid #fed7aa;
+}
+
+.badge-lunas {
+    background-color: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+/* ========================================== */
+/* 9. ALERT — KONSISTEN & AUTO-DISMISS READY  */
+/* ========================================== */
+.alert {
+    border-radius: var(--pos-radius);
+    border-width: 1px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.alert-success {
+    background-color: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #15803d;
+}
+
+.alert-danger {
+    background-color: #fef2f2;
+    border-color: #fecaca;
+    color: #b91c1c;
+}
+
+.alert-warning {
+    background-color: #fffbeb;
+    border-color: #fde68a;
+    color: #92400e;
+}
+
+.alert-info {
+    background-color: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
+}
+
+/* Animasi masuk alert */
+.alert.fade.show {
+    animation: alertSlideIn 0.3s ease;
+}
+
+@keyframes alertSlideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ========================================== */
+/* 10. MODAL — TRANSISI HALUS                 */
+/* ========================================== */
+.modal-content {
+    border: none;
+    border-radius: var(--pos-radius-lg);
+    box-shadow: var(--pos-shadow-lg);
+}
+
+.modal-header {
+    border-bottom: 1px solid #f1f5f9;
+    padding: 1.1rem 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid #f1f5f9;
+    padding: 0.85rem 1.5rem;
+}
+
+.modal-body {
+    padding: 1.25rem 1.5rem;
+}
+
+/* Animasi modal lebih halus */
+.modal.fade .modal-dialog {
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+    transform: translateY(-16px) scale(0.98);
+}
+
+.modal.show .modal-dialog {
+    transform: translateY(0) scale(1);
+}
+
+/* ========================================== */
+/* 11. HEADER HALAMAN — KONSISTENSI           */
+/* ========================================== */
+.page-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.page-header-title h4 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.page-header-title p {
+    font-size: 0.84rem;
+    color: var(--pos-text-muted);
+    margin: 0;
+}
+
+/* ========================================== */
+/* 12. SCROLLBAR CUSTOM                       */
+/* ========================================== */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 5px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* ========================================== */
+/* 13. KEYBOARD SHORTCUT BADGE                */
+/* ========================================== */
+kbd {
+    background-color: #f1f5f9;
+    color: var(--pos-text-muted);
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    font-family: inherit;
+}
+
+/* ========================================== */
+/* 14. LOADING SPINNER                        */
+/* ========================================== */
+/* Overlay loading untuk AJAX */
+#loadingIndicator {
+    animation: fadeInUp 0.2s ease;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ========================================== */
+/* 15. FOOTER                                 */
+/* ========================================== */
+footer {
+    background: var(--pos-surface);
+    border-top: 1px solid var(--pos-border);
+    padding: 0.85rem 0;
+    margin-top: auto;
+    font-size: 0.8125rem;
+    color: var(--pos-text-muted);
+}
+
+/* ========================================== */
+/* 16. HALAMAN KASIR — RESPONSIVE MOBILE      */
+/* ========================================== */
+
+/* Keranjang belanja selalu terlihat di mobile (stack kolom) */
+@media (max-width: 991.98px) {
+    /* Produk grid full width dulu, lalu keranjang */
+    .kasir-product-col {
+        order: 1;
+    }
+
+    .kasir-cart-col {
+        order: 2;
+    }
+
+    /* Area produk dibatasi tinggi lebih kecil di mobile */
+    .kasir-product-area {
+        min-height: 300px !important;
+        max-height: 380px !important;
+    }
+
+    /* Keranjang tidak terlalu tinggi di mobile */
+    .kasir-cart-area {
+        max-height: 260px !important;
+    }
+
+    /* Tombol simpan & bayar lebih besar di touchscreen */
+    #btnProsesTransaksi,
+    #btnSimpanTransaksi {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        min-height: 52px;
+    }
+
+    /* Tombol kuantitas keranjang lebih mudah disentuh di mobile/tablet */
+    #tabelKeranjang .btn-kurang,
+    #tabelKeranjang .btn-tambah {
+        min-width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1rem;
+        touch-action: manipulation;
+    }
+
+    #tabelKeranjang .input-qty {
+        height: 32px;
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+    #tabelKeranjang .btn-hapus {
+        min-width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+
+    /* Tombol pecahan cepat lebih besar */
+    .btn-pecahan {
+        min-height: 44px;
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    /* Input uang bayar lebih tinggi di touchscreen */
+    #inputUangBayar {
+        font-size: 1.05rem;
+        padding: 0.6rem 0.75rem;
+        min-height: 46px;
+    }
+
+    /* Tab kategori font lebih kecil agar muat */
+    .btn-tab-kategori {
+        font-size: 0.8rem;
+        padding: 0.3rem 0.7rem !important;
+    }
+}
+
+@media (max-width: 575.98px) {
+    /* Card produk jadi 2 kolom penuh di layar sangat kecil */
+    .produk-card-col {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+
+    /* Tombol kosongkan keranjang tidak terlalu lebar */
+    #btnKosongkanKeranjang {
+        font-size: 0.8rem;
+        padding: 0.3rem 0.7rem;
+    }
+}
+
+/* ========================================== */
+/* 17. PAGINATION                             */
+/* ========================================== */
+.pagination {
+    margin-bottom: 0;
+}
+
+.pagination .page-link {
+    font-size: 0.8375rem;
+    font-weight: 500;
+    color: var(--pos-blue);
+    border-color: var(--pos-border);
+    border-radius: var(--pos-radius-sm) !important;
+    margin: 0 2px;
+    transition: var(--pos-transition-fast);
+}
+
+.pagination .page-link:hover {
+    background-color: #eff6ff;
+    border-color: var(--pos-blue);
+    color: var(--pos-blue-dark);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--pos-blue);
+    border-color: var(--pos-blue);
+    box-shadow: 0 2px 6px rgba(37,99,235,0.3);
+}
+
+.pagination .page-item.disabled .page-link {
+    color: var(--pos-text-light);
+    background-color: #f8fafc;
+}
+
+/* ========================================== */
+/* 18. PROGRESS BAR (Piutang)                 */
+/* ========================================== */
+.progress {
+    border-radius: 100px;
+    background-color: #f1f5f9;
+    height: 8px;
+}
+
+.progress-bar {
+    border-radius: 100px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========================================== */
+/* 19. ATURAN CETAK (PRINT)                   */
+/* ========================================== */
+@media print {
+    .navbar,
+    footer,
+    .btn-action-area,
+    .btn,
+    .alert,
+    .modal,
+    .no-print,
+    .navbar-custom,
+    .page-header .btn {
+        display: none !important;
+    }
+
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-size: 12pt;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .card,
+    .card-custom {
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .table th,
+    .table td {
+        border-color: #999 !important;
+        font-size: 10pt;
+    }
+
+    a[href]::after {
+        content: none !important;
+    }
+}
+
+/* ========================================== */
+/* 20. UTILITAS TAMBAHAN                      */
+/* ========================================== */
+/* Teks truncate untuk label panjang di tabel */
+.text-truncate-150 {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+/* Animasi fade-in halaman baru */
+.page-fade-in {
+    animation: pageFadeIn 0.3s ease;
+}
+
+@keyframes pageFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Hover state untuk baris tabel yang bisa diklik */
+.row-clickable {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.row-clickable:hover {
+    background-color: #eff6ff !important;
+}
+
+/* Divider teks */
+.divider-text {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--pos-text-muted);
+    font-size: 0.8rem;
+}
+
+.divider-text::before,
+.divider-text::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--pos-border);
+}
